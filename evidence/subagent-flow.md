@@ -376,6 +376,20 @@ Continued in `local-conversation-turn-632904a8790c.js`. In the transcript item p
 
 This is static evidence for a dedicated subagent-activity rendering branch, item anchoring, and the exclusion-list input. It does not establish that a particular group was selected, expanded, or painted in a live session. Offsets refer only to the resource SHA-256 above.
 
+### Inline activity group helper
+
+Followed the turn renderer's `da` import into the shared resource `webview/assets/sites-end-resource-78b98c374310.js` (SHA-256 `4897e9b701726b0874a5036157ea32eb85932a04669ab9e205b820623f8be4a3`). Exported helper `bE` filters background-agent snapshot rows to the current `turnKey`, excludes IDs from `excludedSubagentThreadIds`, and requires a usable display name. It merges those rows with activity groups, deduplicating by conversation ID; activity groups retain their anchor, while unrepresented current-turn children are appended as an unanchored group. With no activity groups, a standalone group can still be produced from the snapshot.
+
+The helper reconciles display names/status from snapshot, current-turn, and later activity data. Group status precedence is interrupted, updated, all children completed, then active. `Mc` builds the inline group; row component `wE` creates a button with an “Open … subagent” label and open callback only when contextual `canOpen(row)` is true, otherwise it creates a non-button row. This is static element-construction evidence, not proof that a particular session rendered the button or that it was clicked. The helper begins near byte offset `248649`; offsets are valid only for the exact resource hash above. No runtime UI, DOM, service authorization, or live child status was verified.
+
+### Inline row click target resolution
+
+Followed `Mc`'s context callback into the local-thread context in `local-conversation-thread-c8c5e92ea89e.js` (SHA-256 `ee192ab3f19d493d64580f7690c94b05c589fe59c1757984e1c5a076976a47eb`). Its `open` handler resolves the child through `open-target-622f980eb330.js` before invoking a supplied opener or the default background-agent opener. The default opener activates the child thread summary with `addToRecent: false`, then routes to the background-agent tab or the host thread opener according to window mode.
+
+The target resolver checks the parent's background-agent snapshot, then parent history for spawn/activity evidence, then child ancestry followed by history validation. A matching `collabAgentToolCall(spawnAgent)` requires the parent sender and receiver ID and validates known parent identity; it returns `canInteract: true`. A matching `subAgentActivity(started)` alone returns `canInteract: false` and derives the display name from the activity path. The separate `canOpen` predicate allows a row when the child is present in the snapshot or the parent history contains a spawn/start record. A click still resolves the target first, and no navigation occurs when resolution returns null. Thus row clickability, verified child identity, and interactivity are separate conditions.
+
+`open-target-622f980eb330.js` SHA-256: `04a527af414610472558067a99e6827f4ae73c732f0f5b2ee4b5101d66a5719d`. Navigation aids: resolver begins near byte offset `260`; thread context construction near `315432`; default opener near `181440`; turn context consumer in `local-conversation-turn-632904a8790c.js` (SHA-256 `f16c75de8c65e6849f3976cc8e0efec198e7b063ec81ce514ff85b348967b376`) near `57360`. Static call-graph evidence only; no click/navigation or server authorization was exercised.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
