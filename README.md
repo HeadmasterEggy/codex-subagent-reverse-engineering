@@ -10,6 +10,8 @@ The ChatGPT app embeds CLI `0.162.0-alpha.17.2`; its version-matched public sour
 
 In that source snapshot, V2 spawn creates a child thread through shared `AgentControl`, persists the parent-child edge before submitting the initial input, and delivers terminal outcomes through the V2 session event path. The detached completion watcher is the legacy route. See [the evidence report](evidence/subagent-flow.md).
 
+A read-only correlation of the local Codex Desktop session store found three V2 parent-child rollout pairs for embedded CLI `0.162.0-alpha.17.2`. In each recorded sequence, the child's `task_started` precedes the parent's `SubAgentActivity(Started)`; at completion, `task_complete` precedes `Completed`, followed by the matching parent `agent_message`. This is a scoped observation of locally retained rollout records, not evidence of a global desktop default or exact UI render timing. No identifiers or message contents are published; see [the desktop runtime evidence](evidence/subagent-flow.md#desktop-research-session-runtime-metadata).
+
 The 0.162.1 source snapshot also exposes structured agent-tree shutdown reporting: teardown failures are classified by operation and phase, retained up to 64 per tree, and include abandoned cleanup guards. It also conditionally preserves forked `AdditionalTools` declarations together with their context-comparison baseline. These are contrasts between public source snapshots, not proof of a linear version transition or the introducing commit; this checkout was shallow when ancestry was checked. They are source evidence, not live observations from the ChatGPT desktop host.
 
 ## Reproduce local identity checks
