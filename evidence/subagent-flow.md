@@ -58,6 +58,12 @@ The arm64 disassembly of `maybe_start_completion_watcher` includes a call to `Lo
 
 The executable's embedded strings include `features.multi_agent_v2.max_concurrent_threads_per_session`, wait timeout keys and validation text, and `codex.multi_agent.result_delivery`. Their presence does not disclose which values were active.
 
+## Application bundle coverage
+
+REA's `analyze-javascript-application` completed static parsing of 16,240 source files in the installed `app.asar` and reconstructed its application/Electron graph. The ASAR manifest declared SHA-256 `5f2f66c4fe19493bba7ca2e0c322ed256e39f66d4a58865875431c2ddd4d58a1` for the unpacked `node_modules/@worklouder/device-kit-oai/node_modules/@worklouder/wl-device-kit/dist/native/darwin/permissions.node`, while the companion file hashed to `6096151ba2644b594b0e0f3098e898c6a564b57371658f9fd80327bfa641d313`. Analysis continued under `record-and-continue`, so that file is explicitly untrusted.
+
+Large startup bundles hit semantic-analysis result/heap constraints. The analyzer retained static/module facts for affected files, but the CLI's per-file limitation array exceeded the output transport and was truncated. This whole-app pass therefore does not add a verified subagent-specific UI call path; the UI claims above remain bounded to the individually inspected resources. This was static package analysis only, with no app execution or network observation.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
