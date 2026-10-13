@@ -203,6 +203,8 @@ Curated symbol names found in the executable include:
 
 The arm64 disassembly of `maybe_start_completion_watcher` includes a call to `LocalAgentRuntime::admit_start` and constructs the asynchronous watcher future. The method symbol spans `0x1049d8348` through the next named method at `0x1049dd484`; the emitted async state-machine code is optimized and not a direct source-level reconstruction. This confirms local implementation structure around watcher admission/future creation, not that a watcher ran or which branch it took. Exact status and routing semantics above are interpreted from the matching versioned source, not asserted from this disassembly alone.
 
+A callsite scan limited to that compiled symbol range also finds named references to `LocalAgentRuntime::admit_start` (`0x1049d8478`, `0x1049da1ec`), `Mailboxes::enqueue` (`0x1049da46c`), and `agent_communication::emit_agent_communication_send` (`0x1049da4c8`, `0x1049da804`), alongside agent-registry and conversation-history helpers. These are call references in one optimized symbol range, not a recovered branch map: they corroborate that the compiled region contains lifecycle and communication machinery, but do not establish which calls belong to a particular source branch or that any call executed. The matching source remains the basis for the exact watcher sequence; the local async state machine is not fully reconstructed.
+
 The executable's embedded strings include `features.multi_agent_v2.max_concurrent_threads_per_session`, wait timeout keys and validation text, and `codex.multi_agent.result_delivery`. Their presence does not disclose which values were active.
 
 ## V2 child cold-resume configuration
