@@ -10,7 +10,7 @@ The ChatGPT app embeds CLI `0.162.0-alpha.17.2`; its version-matched public sour
 
 In that source snapshot, V2 spawn creates a child thread through shared `AgentControl`, persists the parent-child edge before submitting the initial input, and delivers terminal outcomes through the V2 session event path. The detached completion watcher is the legacy route. See [the evidence report](evidence/subagent-flow.md).
 
-The 0.162.1 source comparison also exposes structured agent-tree shutdown reporting: teardown failures are classified by operation and phase, retained up to 64 per tree, and include abandoned cleanup guards. This is source evidence about lifecycle cleanup, not a live observation from the ChatGPT desktop host.
+The 0.162.1 source snapshot also exposes structured agent-tree shutdown reporting: teardown failures are classified by operation and phase, retained up to 64 per tree, and include abandoned cleanup guards. It also conditionally preserves forked `AdditionalTools` declarations together with their context-comparison baseline. These are contrasts between public source snapshots, not proof of a linear version transition or the introducing commit; this checkout was shallow when ancestry was checked. They are source evidence, not live observations from the ChatGPT desktop host.
 
 ## Reproduce local identity checks
 
