@@ -597,6 +597,12 @@ The alpha.9 scenario fixture models a response paused after a reasoning, comment
 
 The outer `run_turn` loop explains how the checkpoint becomes another request: when sampling reports `needs_follow_up`, it asks the input queue to accept mailbox delivery for the active turn, then checks for pending input after sampling and tool processing. The loop therefore schedules another sampling step when follow-up is needed. This code path establishes in-process control flow for the alpha.9 snapshot, not a live desktop observation. Source: [`turn.rs`](https://github.com/openai/codex/blob/4753ce3d19df9ffa58353736c4ffde49ed071589/codex-rs/core/src/session/turn.rs#L550-L578).
 
+## REA focused parse of the two desktop bundles
+
+On 2026-10-14, REA CLI 6.4.0 parsed inert copies of `src-BJv5Mk7n.js` and `main-CqEoQDOU.js` from the installed ChatGPT app. The input root SHA-256 was `517ac14071fb53e395d1e1d772d41a2a639d66e2f813372b216935450b428ac1`; the individual bundle hashes are recorded above. The run read 5,415,772 text bytes, visited 1,369,227 AST nodes, reported 306 findings, and had zero JavaScript parse failures. Evidence ID: `ev_2b28ebed0394837f1ff46d180985565056994d68310abbb8f7e015a4bf1b4290`.
+
+The semantic graph is explicitly partial. Both large bundles hit the owned worker heap limit during semantic analysis; the normalized result reports zero resolved modules and zero IPC operations for this two-file selection. A `trace_application_feature` request seeded with `discoverForSpawn` returned no matching node, while a seed using the asset label returned the partial graph rather than an isolated subagent path. These are limits of this analysis and seed representation, not evidence that the source has no topology refresh or IPC. The bundle strings and callsites remain supported by direct static inspection elsewhere in this report. REA parsed the files as inert text and did not execute bundle bootstrap code. No desktop runtime event was captured.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
