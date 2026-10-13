@@ -11,6 +11,9 @@ Checked on 2026-10-13. This report distinguishes direct local observations from 
 | Mach-O architecture | arm64 |
 | Mach-O UUID | `2CE1483B-FF35-344F-9958-9D48FFE5D5ED` |
 | SHA-256 | `0d5ac7aae20c4eda6242428d5e218c55ba96d8763fda2a271088ff37104b9d28` |
+| ChatGPT app version/build | `26.1007.30912` / `20156` |
+| Code signature | Valid on disk; Apple notarization ticket stapled; signer `OpenAI OpCo, LLC` (`2DC432GLL2`) |
+| Signature timestamp | 2026-10-08 18:10:22 local tool output |
 | Matching source tag | `rust-v0.162.0-alpha.17.2` |
 | Peeled source commit | `740e5af33c71225640e0c1c1555c514c2c93ab74` |
 
@@ -20,7 +23,7 @@ The V2 `spawn_agent` success result serializes `task_name` and optionally `nickn
 
 The controller waits for spawn-edge persistence and initial input admission, commits reservations, and returns the live agent before the V2 handler emits the `Started` activity. Thus `Started` is evidence of successful control-plane creation/input admission in this source path, not evidence that the child has begun model inference. Actual execution permit acquisition belongs to later scheduling. Sources: [`control/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control/spawn.rs) and [`multi_agents_v2/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs). This is static source ordering, not a live timing measurement.
 
-The version match is direct evidence. It is not proof that the installed executable was built from the peeled commit: no signed build manifest or embedded source revision was established in this investigation.
+The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match.
 
 ## Finding ledger
 

@@ -13,6 +13,10 @@ printf '\n%s\n' '## SHA-256'
 shasum -a 256 "$target"
 printf '\n%s\n' '## Mach-O UUID'
 dwarfdump --uuid "$target"
+bundle=$(cd "$(dirname "$target")/../.." && pwd)
+printf '\n%s\n' '## Code signature'
+codesign --verify --deep --strict --verbose=2 "$bundle" 2>&1
+codesign -dv --verbose=4 "$bundle" 2>&1 | rg '^(Identifier|Authority|TeamIdentifier|Timestamp|Notarization Ticket)=' || true
 printf '\n%s\n' '## Selected symbols'
 nm -an "$target" | rg 'LocalAgentControl.*(prepare_thread_spawn|maybe_start_completion_watcher|turn_finished)|multi_agents_v2.*(spawn|wait|list_agents|send_message|followup_task|interrupt_agent)|notify_parent_of_terminal_turn' | head -80 || true
 printf '\n%s\n' '## Selected embedded strings'
