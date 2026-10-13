@@ -94,6 +94,8 @@ A corrected read-only recount on 2026-10-14 parsed the current 181 local rollout
 
 The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match. The source tag itself is annotated but unsigned, and the peeled commit also has no Git signature; the remote GitHub tag ref was separately confirmed to resolve to the recorded tag object and commit. This establishes the fetched repository state, not a signed release attestation.
 
+A separate read-only schema inspection of the local app-server `state_5.sqlite` found `threads` and `thread_spawn_edges` tables but no turn, event, transcript, or history table. The database therefore supports the parent-child identity correlation above, not a transcript/UI-history claim. Rollout JSONL files are the source for the recorded event sequence in this sample. This is limited to the inspected database schema; it does not establish that no other local or remote persistence surface exists.
+
 ## Finding ledger
 
 | Question | Result | Evidence and boundary |
