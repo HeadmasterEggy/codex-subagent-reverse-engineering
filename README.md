@@ -25,7 +25,7 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 - Static symbols and strings establish that named code/data is present, not that a particular runtime path executed.
 - Disassembly is interpreted narrowly and cross-checked against the versioned public source where possible.
 - A matching version tag is not a signed build-provenance statement.
-- No live multi-agent run, network capture, or server-side implementation analysis is included.
+- One live CLI V2 probe successfully spawned a child and captured parent/child rollout evidence; a separate ephemeral probe failed because no parent rollout was found. Neither run used the desktop conversation host. No network capture or private server-side implementation analysis is included.
 
 ## References
 

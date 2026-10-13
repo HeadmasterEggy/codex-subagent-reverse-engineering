@@ -36,6 +36,12 @@ SYM=$(nm -an "$BIN" | awk '/multi_agents_v2.*spawn.*Handler.*handle/ {print $NF;
 otool -arch arm64 -tvV -p "$SYM" "$BIN"
 ```
 
+## Live CLI probe
+
+On 2026-10-13, one controlled CLI run used the embedded binary with `exec`, `--enable multi_agent_v2`, `--ignore-user-config`, `--sandbox read-only`, `--skip-git-repo-check`, and `/tmp` as cwd. The parent was asked to spawn one child with a fixed response, wait for it, and avoid other tools or file access. The persisted rollout records `multi_agent_version: v2`; `spawn_agent` returned only `{"task_name":"/root/probe_child"}`. The parent then emitted `SubAgentActivity` items of kind `started` and `completed` for that path, and called `wait_agent`, which returned `Wait completed.` with `timed_out: false`. A separate child rollout records `thread_source: subagent`, a `thread_spawn` source with parent linkage and depth 1, and final text `CHILD_PROBE_OK`. The parent received a typed `AgentMessage` from `/root/probe_child` with that result. This is one successful live CLI run, not a desktop conversation trace or evidence that the default desktop configuration selects V2.
+
+An otherwise equivalent `--ephemeral` attempt did not create a child: the parent turn reported `spawn_agent failed because no rollout was found for the thread`, and no child result was available. This indicates that the tested spawn path needs a persisted rollout for the parent. It does not establish whether every ephemeral mode or host has the same constraint. Neither run read or modified project files; the successful run created normal parent and child session records under the user's Codex session store.
+
 The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match. The source tag itself is annotated but unsigned, and the peeled commit also has no Git signature; the remote GitHub tag ref was separately confirmed to resolve to the recorded tag object and commit. This establishes the fetched repository state, not a signed release attestation.
 
 ## Finding ledger
