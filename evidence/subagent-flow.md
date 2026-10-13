@@ -416,6 +416,12 @@ In `chatgpt-subagents-panel-e608a4ff5e56.js` (SHA-256 `406de5e3b812c5fb5a60ab34c
 
 For a completed child, the detail component forwards its `shouldBlockExternalEgress` prop to the Markdown renderer as `externalResourcePolicy: "restricted"` when true and `"allow"` otherwise. The inspected panel code does not establish where that prop is computed or the complete effect of either policy, so this finding records only the conditional passed to the renderer. Relevant code begins near byte offsets `537` (selection and missing-row branch), `6004` (detail renderer), `6442` (branch-unavailable message), and `7757` (policy selection). Static bundle evidence only; no branch switch, rendered UI, or external navigation was exercised.
 
+### Work panel thumbnail reuses the final-response query cache
+
+The registered Work subagents thumbnail in `subagents-525abfd8ce99.js` (SHA-256 `d7e724ae5d94e68233966a03fb35e3291c39d8d80b633673bf139991f360a7cd`) projects the selected child from the same conversation subagent list. For a `done` child it reads the final-response query cache using the same query key inputs: parent conversation ID, child thread ID, activation ID, and live-turn state. Its preview chooses cached response text first, then the row's `statusMessage`, then the prompt only for an active child; it truncates the chosen text to 1,000 characters. The thumbnail separately maps the child status to an icon/status label. This is client cache reuse and preview projection, not evidence of a second endpoint request or of the server response content.
+
+Relevant code begins near byte offsets `619` (thumbnail projection), `3162` (query cache lookup), and `3537` (excerpt selection/truncation); `H` near `2616` groups active versus non-active child rows. Static extracted-bundle evidence only; no thumbnail was rendered and no network request was observed.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
