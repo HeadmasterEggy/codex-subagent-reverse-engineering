@@ -24,6 +24,18 @@ The V2 `spawn_agent` success result serializes `task_name` and optionally `nickn
 
 The controller waits for spawn-edge persistence and initial input admission, commits reservations, and returns the live agent before the V2 handler emits the `Started` activity. Thus `Started` is evidence of successful control-plane creation/input admission in this source path, not evidence that the child has begun model inference. Actual execution permit acquisition belongs to later scheduling. Sources: [`control/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control/spawn.rs) and [`multi_agents_v2/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs). This is static source ordering, not a live timing measurement.
 
+## Additional finding: V2 spawn handler exists in the installed machine code
+
+The installed arm64 Mach-O retains the Rust symbol for `multi_agents_v2::spawn::Handler::handle` at `0x105083d2c`. Targeted `otool -arch arm64 -tvV -p <mangled-symbol>` disassembly shows call instructions at `0x1050846d0`, `0x1050848c4`, `0x105085184`, and `0x105085204`, whose resolved symbol names are respectively `multi_agents_common::thread_spawn_source`, `session::multi_agents::resolve_usage_hints`, `record_collab_spawn_failure`, and `collab_spawn_error`. This is direct local machine-code evidence that the installed binary contains a V2 spawn handler wired to these named helpers. Symbol names and call sites do not by themselves prove every helper's behavior or that this exact binary was built from the matching public tag. The disassembly was inspected locally and is not a captured live spawn.
+
+Reproduce the symbol lookup and focused disassembly on the same binary with:
+
+```sh
+BIN='/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex'
+SYM=$(nm -an "$BIN" | awk '/multi_agents_v2.*spawn.*Handler.*handle/ {print $NF; exit}')
+otool -arch arm64 -tvV -p "$SYM" "$BIN"
+```
+
 The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match. The source tag itself is annotated but unsigned, and the peeled commit also has no Git signature; the remote GitHub tag ref was separately confirmed to resolve to the recorded tag object and commit. This establishes the fetched repository state, not a signed release attestation.
 
 ## Finding ledger
