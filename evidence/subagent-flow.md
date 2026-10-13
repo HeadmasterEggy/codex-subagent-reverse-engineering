@@ -18,6 +18,26 @@ Checked on 2026-10-13. This report distinguishes direct local observations from 
 | Peeled source commit | `740e5af33c71225640e0c1c1555c514c2c93ab74` |
 | Source tag signature | The remote annotated tag resolves to the recorded commit; `git verify-tag` and commit signature inspection found no cryptographic signature. |
 
+## Additional finding: matching subagent-specific literals in the installed CLI
+
+The embedded arm64 Mach-O string table contains exact subagent-related error literals also present in the peeled `rust-v0.162.0-alpha.17.2` source: `Agent depth limit reached. Solve the task yourself.`, `spawn_agent could not resolve the child model for service tier validation`, and `spawn_agent could not resolve the child model for reasoning effort validation`. The first occurs in the V1 spawn and resume handlers; the latter two are in child configuration validation. This provides another content-level cross-check that the public tag is relevant to the installed binary. A string match does not prove that the whole binary was built from this commit, nor that any matched branch ran in the desktop session. The binary identity remains the SHA-256 and Mach-O UUID above; no runtime action was taken for this check.
+
+## Additional finding: composer Stop callback reaches the conversation manager
+
+Static tracing of the installed app bundle resolves the regular composer Stop path across three hashed resources:
+
+| ASAR resource | SHA-256 |
+| --- | --- |
+| `webview/assets/app-primary-6f60e9ac4103.js` | `7fe9c00b03cb1de3ebc3a4bf298fc44b13a7fe67ca9cc335a9e2ecda969a1321` |
+| `webview/assets/app-initial-6350d04672d0.js` | `604b5d2de4fbb41f3d0dc5b3662129c558e1c7b8aac8cc87225286f58dcfaf8f` |
+| `webview/assets/app-shared-8bd9d0399038.js` | `607ad0866dd25ed3764711b4467a9b60708353a599485b5249ff4cbe0e870245` |
+
+In `app-primary`, the submit-button component renders a Stop button when `submitButtonMode` is `stop`; its click callback invokes the supplied `onStop`. The Codex composer adapter wraps and passes that callback, and the session component supplies its stop handler. That handler selects the conversation's host and invokes exported `yda` with `initiatedBy: "user"`. `yda` maps this to `interruptConversation(conversationId, "user-stop", expectedTurnId)` on the selected host manager. The static callback chain is therefore composer Stop -> `onStop` -> Codex composer adapter -> session stop handler -> `yda` -> host manager `interruptConversation`.
+
+This is not the `beforeArchiveConversation` callback and it does not call `stopThread`. The archive path may converge internally only when `stopThread` falls back from durable `thread/stop` to `interruptConversation`. This is a bundle-level static call graph: no button was clicked and no runtime routing was observed. The Stop control is rendered only when the composer state selects the `stop` submission mode. Bundle byte offsets and excerpts are retained in the analysis notes; offsets are approximate byte offsets within the extracted JS files.
+
+The inspected callsites, as byte offsets in the extracted resources, were: `app-primary` Stop-button branch around 861,747 and click callback around 869,779; adapter `onStop` input around 1,365,164, wrapper around 1,379,045, composer prop around 1,402,642, and session handler wiring around 1,425,623; handler path around 1,420,466–1,420,619; `app-initial` `yda` implementation around 5,453,540; `app-shared` facade around 2,540,264 and manager implementation around 3,239,876. They are navigation aids for these exact hashed files, not stable source line numbers.
+
 ## Additional finding: distinct standalone and desktop CLI identities
 
 On 2026-10-13, `type -a codex` resolved the user's PATH-first command to `/Users/joey/.local/bin/codex`, a symlink into the standalone release package. That binary reports `codex-cli 0.162.1`, is arm64, and has SHA-256 `74c6a6d263f40d65f99c27a815275f5b4ed0bcc2baecc396b4cf3255498bdfc0`. The separately inspected ChatGPT.app embedded binary reports `codex-cli 0.162.0-alpha.17.2`, has SHA-256 `0d5ac7aae20c4eda6242428d5e218c55ba96d8763fda2a271088ff37104b9d28`, and was the executable for the observed desktop process. That process was running `exec-server --remote` against the Codex cloud-environments endpoint; this establishes the process mode, not what code ran on the remote host. Do not treat standalone CLI behavior as a desktop-host probe.
