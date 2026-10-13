@@ -64,6 +64,20 @@ REA's `analyze-javascript-application` completed static parsing of 16,240 source
 
 Large startup bundles hit semantic-analysis result/heap constraints. The analyzer retained static/module facts for affected files, but the CLI's per-file limitation array exceeded the output transport and was truncated. This whole-app pass therefore does not add a verified subagent-specific UI call path; the UI claims above remain bounded to the individually inspected resources. This was static package analysis only, with no app execution or network observation.
 
+## Targeted Codex subagent UI resources
+
+After the whole-app pass, five files were extracted individually from the same `app.asar` and inspected. SHA-256 values below identify the extracted bytes; the files themselves are not redistributed.
+
+| ASAR resource | SHA-256 | Static observation |
+| --- | --- | --- |
+| `webview/assets/local-conversation-subagents-panel-tab-2ab06de7bd1d.js` | `345278adc9f056901c6e0b8d64c98b09d6d3e12019c2ec20be8567b100196eef` | Renders active/done groups and child detail/transcript view from local conversation state. |
+| `webview/assets/open-local-conversation-subagents-panel-5abfac9190b9.js` | `676ecbb8172e729e5a77dc4f799cbca2f38f0aaf986bf44da9424f92e9237491` | Opens a durable Subagents panel route with parent id and optional selected child id; hydrates history as needed. |
+| `webview/assets/subagents-6af1a27d0027.js` | `706c241e8bfb4399746842434ea79137889a05213f28990ed354171383d04db2` | Populates a thumbnail from `getSubagentDescendantSnapshot(parentConversationId)`. |
+| `webview/assets/verify-descendant-d02f27822163.js` | `dc7baa2e1adc9b3b469f2e766c3b88ea25cdecd098534a9e39ee7c2b88596554` | Checks ancestry to the requested parent, rejects cycles and host mismatch, and hydrates missing ancestry/transcript data. |
+| `webview/assets/chatgpt-subagent-final-response-query-b2b6816e81df.js` | `43b96d88ea4b71bdda82e04d2e137531c0ce726e17559de7bde9be018d9d5012` | Queries `/flora/subagent/thread/turns` with parent id, child id and `limit: 1`; selects the last non-empty agent message, preferring `phase=final_answer`. |
+
+These client resources indicate that descendant discovery, child identity validation, history hydration, and final-response retrieval are distinct steps. The panel can show a child as done while its final response is still loading. This does not establish that a live session executed the code, nor does it reveal the server-side endpoint implementation or authorization rules. To reproduce extraction on macOS, use `npx --yes @electron/asar extract-file <app.asar> <resource-path>` and hash the resulting file with `shasum -a 256`.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
