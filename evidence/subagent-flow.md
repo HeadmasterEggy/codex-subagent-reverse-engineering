@@ -390,6 +390,10 @@ The target resolver checks the parent's background-agent snapshot, then parent h
 
 `open-target-622f980eb330.js` SHA-256: `04a527af414610472558067a99e6827f4ae73c732f0f5b2ee4b5101d66a5719d`. Navigation aids: resolver begins near byte offset `260`; thread context construction near `315432`; default opener near `181440`; turn context consumer in `local-conversation-turn-632904a8790c.js` (SHA-256 `f16c75de8c65e6849f3976cc8e0efec198e7b063ec81ce514ff85b348967b376`) near `57360`. Static call-graph evidence only; no click/navigation or server authorization was exercised.
 
+### Duplicate spawn activity suppression
+
+The same shared resource exports `vE` (imported as `pa` by the turn renderer). In the background-agent display projection, it collects represented child IDs from named current-turn background-agent snapshots and valid `subagent-activity` items. It filters only completed `multi-agent-action(spawnAgent)` items whose prompt is missing/blank, receiver list is nonempty, and every receiver is already represented by inline child rows. Items with prompt text, no receivers, or any unrepresented receiver remain. This is a targeted transcript-display deduplication; it does not show that raw turn items or persisted history are deleted. Definition begins near byte offset `247217` in `sites-end-resource-78b98c374310.js`; the turn-renderer call is near `62217` in `local-conversation-turn-632904a8790c.js`. Static bundle evidence only; no runtime rendering was tested.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
