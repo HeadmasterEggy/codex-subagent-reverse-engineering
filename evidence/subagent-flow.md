@@ -472,6 +472,14 @@ The normal `will-quit` handler (around `3384353`) prevents the immediate quit, f
 
 The single constructor callsite found in this main bundle supports a fresh manager being built when the app startup routine runs again; it does not establish whether any remote subagent work survives app exit, how its thread/parent relation is rediscovered, or whether a later server notification repopulates the new connection's child-ID set. This is static bundle evidence; no app restart or update exit was triggered.
 
+### `thread/list` and prewarmed `thread/started` do not backfill the connection child filter
+
+In the installed connection bundle `src-BJv5Mk7n.js` (SHA-256 `72e2b366d574206f76fc079c79b64c31ce378970a797475ded8709908d338f08`), `listThreads()` is a request wrapper around `thread/list` (byte offset about `1205725`). The shared conversation-list helper independently issues `thread/list` through `sendRequest` (about `438282`) and consumes the returned rows for conversation state. Neither path writes to the connection's `subagentThreadIds`; the bundle-wide reference scan still finds only one direct insertion, in the qualifying `thread/started` route (about `1256453`). So persisted list results and conversation hydration are distinct from registering IDs in the notification filter.
+
+There is also a prewarm-specific exception to the ordinary notification route. A successful request marked `prewarmThread` causes the response thread to be tracked (about `1259615`). When the corresponding raw `thread/started` notification arrives, `suppressThreadStarted()` returns early from `routeIncomingMessage` (about `1255164`), before the `subagentThreadIds.add` condition. Later, on `turn/start`, the connection publishes a synthetic `thread/started`: that callback invokes internal notification handlers and broadcasts to windows directly (about `1197380`); it does not call `routeIncomingMessage`. Therefore the synthetic publication itself cannot populate `subagentThreadIds`.
+
+This is a conditional path analysis, not evidence that subagent threads are prewarmed or that the installed app loses subagent filtering. Whether any subagent uses `prewarmThread`, and whether another lifecycle event subsequently registers it, remain unknown. Static inspection only; no request, reconnect, or notification was triggered.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
