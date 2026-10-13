@@ -16,6 +16,7 @@ Checked on 2026-10-13. This report distinguishes direct local observations from 
 | Signature timestamp | 2026-10-08 18:10:22 local tool output |
 | Matching source tag | `rust-v0.162.0-alpha.17.2` |
 | Peeled source commit | `740e5af33c71225640e0c1c1555c514c2c93ab74` |
+| Source tag signature | The remote annotated tag resolves to the recorded commit; `git verify-tag` and commit signature inspection found no cryptographic signature. |
 
 ## Additional finding: spawn tool result identity
 
@@ -23,7 +24,7 @@ The V2 `spawn_agent` success result serializes `task_name` and optionally `nickn
 
 The controller waits for spawn-edge persistence and initial input admission, commits reservations, and returns the live agent before the V2 handler emits the `Started` activity. Thus `Started` is evidence of successful control-plane creation/input admission in this source path, not evidence that the child has begun model inference. Actual execution permit acquisition belongs to later scheduling. Sources: [`control/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control/spawn.rs) and [`multi_agents_v2/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs). This is static source ordering, not a live timing measurement.
 
-The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match.
+The signature and notarization establish an OpenAI-signed local artifact, while the CLI version and Mach-O UUID identify the inspected build. They do not prove that it was built from the peeled source commit. The nested CLI bundle has only a generic bundle version, no dSYM/build manifest was found in the inspected bundle path, and selected embedded-string scans did not reveal a source revision. The matching tag remains a version-level source comparison, not a cryptographic source-to-binary match. The source tag itself is annotated but unsigned, and the peeled commit also has no Git signature; the remote GitHub tag ref was separately confirmed to resolve to the recorded tag object and commit. This establishes the fetched repository state, not a signed release attestation.
 
 ## Finding ledger
 
