@@ -621,6 +621,14 @@ Inside `NS` (range `602483..605761`), the relevant notification cases call `Qx(e
 
 This closes the *static receiver-identity* gap in the bundle reading; it does not change the REA graph's unresolved relation, and it is not runtime evidence. It does not prove that a qualifying notification occurred in this desktop session, that `discoverForSpawn` completed successfully, or what UI state resulted. Offsets above are Babel source offsets in the extracted JavaScript string, not claims about runtime addresses.
 
+#### Snapshot freshness and reconciliation
+
+The same bundle separates the synchronous store snapshot from completed discovery. `getKnownSubagentDescendantThreads(parent)` combines thread summaries with loaded thread records, then follows each candidate's parent chain to include known descendants; it only returns records available in `threadsById`. `SubagentTopology.getSnapshot(parent)` wraps that view with `isComplete: false` and sets `isLoading` when a full or direct-child discovery for that parent is in flight. Thus a UI subscriber can render known children immediately, but this getter alone never claims the descendant list is exhaustive.
+
+`discover(parent)` coalesces work by parent in separate full-tree and direct-child in-flight maps, captures runtime status evidence before starting `listDescendantThreads`, and then reconciles the fetched result into the thread store. The reconciler treats omitted known descendants as meaningful only when the discovery result says `isComplete`; when complete, an omitted descendant with current `active` or `systemError` runtime evidence is retained, while other omitted descendants have runtime evidence cleared and are represented as idle. Returned thread records prefer a locally stored record when its `updatedAt` is newer, and runtime status changes observed since discovery began take precedence over the fetched status. The resulting snapshot also retains known records that are active or lie on the stored parent chain to an active descendant, even if they were absent from the fresh query result.
+
+This is source-level evidence for why the UI distinguishes “known now” from “complete”, and why an incomplete scan must not be interpreted as an exhaustive negative result. It describes merge policy, not a guarantee that all races or remote failures are recovered; no runtime scan was observed or fault-injected.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
