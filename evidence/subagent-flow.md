@@ -350,6 +350,12 @@ The `itemStreamState` handler (class begins at byte offset `2843620`) maps `thre
 
 At flush, both paths group by conversation ID, look up that conversation in the receiving renderer's `threadStore.conversations`, and skip the group when the conversation is absent or its canonical history-island/turn count is zero. Text application resolves the relevant turn and updates only matching item IDs/types; output application updates a matching `commandExecution` item, while a missing item is dropped with a debug log. This establishes a thread-scoped state-update gate after the connection-wide IPC broadcast. It does not establish that every renderer has the conversation loaded, that every delta mutates state, or that a resulting state change is visibly rendered. Static bundle inspection only; no multi-window runtime trace was captured.
 
+### Local thread transcript projection after thread-store updates
+
+The directly opened local-thread renderer resource `webview/assets/local-conversation-thread-c8c5e92ea89e.js` has SHA-256 `ee192ab3f19d493d64580f7690c94b05c589fe59c1757984e1c5a076976a47eb`. Its `YA` helper supplies `getConversationState` from conversation-scoped selectors; `Uu({conversationId, isBackgroundSubagentsEnabled}).conversationTurns` provides the turns (helper begins at byte offset `305808`, selector read at `305836`). The component passes visible turn entries to `Qy` (call at `294632`); on the complete-history path, `SA` projects turns into transcript entries, converting current turn items through `Fo` (function begins at `280259`).
+
+This connects thread-store state to the local thread page's conversation-scoped transcript preparation. It does not prove that a particular state update caused a React commit or visible paint, and incomplete-history paths use separate history/preview handling. Static extracted-bundle evidence only; no live child-page render was observed.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
