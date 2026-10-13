@@ -42,6 +42,12 @@ The public source tag exactly matches the CLI's reported version. In that snapsh
 
 The older watcher subscribes to child status until a terminal state and performs a final status lookup if the subscription ends without one. In the normal new-spawn path its caller is guarded by `multi_agent_version != V2`.
 
+### Same-tag app-server and state database path
+
+The same source tag also defines the local `thread/list` relation filter. `parentThreadId` and `ancestorThreadId` are mutually exclusive and become direct-child or descendant filters; the app-server passes them through the thread store. The state DB implements descendant lookup with a recursive SQLite CTE over `thread_spawn_edges`, then joins those child IDs to stored threads. `sourceKinds: [SubAgentThreadSpawn]` is mapped to a post-filter over the stored session source. The selected source path's child edge is upserted in the local agent graph store unless the child is ephemeral, and the spawn controller waits for the edge-write task before sending the child's first input. This links edge persistence to the source-level spawn sequence and explains the client bundle's efficient ancestor query. It remains evidence about the matching public source tag; it does not prove this local ChatGPT app's backend process is byte-for-byte from that commit.
+
+Sources: [`thread_processor.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/app-server/src/request_processors/thread_processor.rs), [`state/src/runtime/threads.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/state/src/runtime/threads.rs), [`thread-store/src/local/list_threads.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/thread-store/src/local/list_threads.rs), [`control.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control.rs), [`control/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control/spawn.rs), and [`0021_thread_spawn_edges.sql`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/state/migrations/0021_thread_spawn_edges.sql).
+
 ## Local static evidence
 
 Curated symbol names found in the executable include:
