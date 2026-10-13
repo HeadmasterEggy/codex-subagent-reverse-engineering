@@ -76,6 +76,8 @@ Child config is assembled from the live parent turn: current model/provider/reas
 
 This is source analysis at the matching public tag. It does not establish the resolved settings or exact inputs of a live child session.
 
+Tool availability is also not copied as one opaque parent registry. Session startup materializes the selected child dynamic-tool snapshot into session configuration; each turn then builds a tool router from the child's turn config, environment snapshot, MCP binding, extensions, and dynamic tools. Role overlays only carry feature disables for the listed shell, apps, plugins, memory, and request-permissions features; they do not apply role feature enables. This supports the narrower conclusion that part of the tool surface is rebuilt under child config and policy, while V2 dynamic tools have an explicit gated inheritance path. It does not establish the exact tools exposed by any live child, since those depend on runtime config, MCP/extensions, model, and feature state. Sources: [`session/mod.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/mod.rs), [`session/turn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/turn.rs), [`tools/spec_plan.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/tools/spec_plan.rs), and [`agent/role.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/role.rs).
+
 ## Local static evidence
 
 Curated symbol names found in the executable include:
