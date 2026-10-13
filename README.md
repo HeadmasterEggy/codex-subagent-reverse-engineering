@@ -2,13 +2,15 @@
 
 Evidence-led notes on how Codex creates, coordinates, and reports subagents.
 
-This repository contains a static-analysis report for the macOS Codex CLI embedded in ChatGPT and a source comparison against the matching public Codex version tag. It does not include the Codex application or redistribute upstream source files.
+This repository contains a static-analysis report for the macOS Codex CLI embedded in ChatGPT and version-scoped comparisons with public Codex source tags. It does not include the Codex application or redistribute upstream source files.
 
 ## Current finding
 
-The installed CLI reports `0.162.0-alpha.17.2`. The public `openai/codex` tag with that version resolves to commit [`740e5af33c71225640e0c1c1555c514c2c93ab74`](https://github.com/openai/codex/tree/740e5af33c71225640e0c1c1555c514c2c93ab74). The matching version and local symbols provide a strong comparison point, but do not prove that this exact app binary was built from that commit.
+The ChatGPT app embeds CLI `0.162.0-alpha.17.2`; its version-matched public source tag resolves to [`740e5af33c71225640e0c1c1555c514c2c93ab74`](https://github.com/openai/codex/tree/740e5af33c71225640e0c1c1555c514c2c93ab74). The separately installed standalone CLI reports `0.162.1` and is a different binary. The public `rust-v0.162.1` tag peels to [`092d3acd6bec3e3a14bdc7e7a2810ab628ab759d`](https://github.com/openai/codex/tree/092d3acd6bec3e3a14bdc7e7a2810ab628ab759d). Neither version match proves exact binary build provenance.
 
 In that source snapshot, V2 spawn creates a child thread through shared `AgentControl`, persists the parent-child edge before submitting the initial input, and delivers terminal outcomes through the V2 session event path. The detached completion watcher is the legacy route. See [the evidence report](evidence/subagent-flow.md).
+
+The 0.162.1 source comparison also exposes structured agent-tree shutdown reporting: teardown failures are classified by operation and phase, retained up to 64 per tree, and include abandoned cleanup guards. This is source evidence about lifecycle cleanup, not a live observation from the ChatGPT desktop host.
 
 ## Reproduce local identity checks
 
@@ -31,5 +33,6 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 
 - [OpenAI Codex repository](https://github.com/openai/codex)
 - [Version tag `rust-v0.162.0-alpha.17.2`](https://github.com/openai/codex/tree/740e5af33c71225640e0c1c1555c514c2c93ab74)
+- [Version tag `rust-v0.162.1`](https://github.com/openai/codex/tree/092d3acd6bec3e3a14bdc7e7a2810ab628ab759d)
 - [Codex multi-agent guide](https://developers.openai.com/api/docs/guides/agents-api/multi-agent)
 
