@@ -14,6 +14,10 @@ Checked on 2026-10-13. This report distinguishes direct local observations from 
 | Matching source tag | `rust-v0.162.0-alpha.17.2` |
 | Peeled source commit | `740e5af33c71225640e0c1c1555c514c2c93ab74` |
 
+## Additional finding: spawn tool result identity
+
+The V2 `spawn_agent` success result serializes `task_name` and optionally `nickname`; it does not serialize the child `ThreadId`. The handler and started-activity path retain the actual child thread ID separately, and `SubAgentActivityEvent` has both `agent_thread_id` and canonical `agent_path`. The source default hides spawn metadata, which removes the optional nickname from the tool result. This distinguishes the model-facing result from internal activity identity; it does not establish what a particular UI renders. Sources: [`multi_agents_v2/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs), [`config/mod.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/config/mod.rs), and [`protocol.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/protocol/src/protocol.rs).
+
 The version match is direct evidence. It is not proof that the installed executable was built from the peeled commit: no signed build manifest or embedded source revision was established in this investigation.
 
 ## Finding ledger
