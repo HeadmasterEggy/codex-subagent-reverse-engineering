@@ -370,6 +370,12 @@ Followed the `Sy` import from `local-conversation-thread-c8c5e92ea89e.js` into `
 
 This advances the static element path from the transcript row to the component boundary that consumes turn content and subagent-related props. It does not prove that `Lc` mounted in a live React tree, selected a particular subagent activity, updated the DOM, or painted pixels. Offsets are navigation aids only for the exact hashed resource.
 
+### Subagent activity inline rendering branch
+
+Continued in `local-conversation-turn-632904a8790c.js`. In the transcript item projection loop (near byte offset `17600`), a `subagent-activity` item with `isMessage: false` is routed to prepared inline activity content by item ID rather than through the generic activity-unit renderer. In `Lc`, the renderer calls `da({activityItemGroups, backgroundAgents, turnKey, excludedSubagentThreadIds})` only when the background-subagents option is enabled and the inspected compact/activity context permits it (call near `64493`). The returned groups are converted to rows; groups with an `anchorItemId` are keyed to that transcript activity, while an unanchored group becomes standalone inline content (near `63500`). The row component `Mc` maps rows/status into a `Ta` subagent-activity inline-group element (definition around `57800`).
+
+This is static evidence for a dedicated subagent-activity rendering branch, item anchoring, and the exclusion-list input. It does not establish that a particular group was selected, expanded, or painted in a live session. Offsets refer only to the resource SHA-256 above.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
