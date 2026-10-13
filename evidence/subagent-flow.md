@@ -422,6 +422,12 @@ The registered Work subagents thumbnail in `subagents-525abfd8ce99.js` (SHA-256 
 
 Relevant code begins near byte offsets `619` (thumbnail projection), `3162` (query cache lookup), and `3537` (excerpt selection/truncation); `H` near `2616` groups active versus non-active child rows. Static extracted-bundle evidence only; no thumbnail was rendered and no network request was observed.
 
+### Work final-response query enters the shared request client
+
+Followed the query's `safeGet` call from `chatgpt-subagent-final-response-query-b2b6816e81df.js` (SHA-256 recorded above) into `app-shared-8bd9d0399038.js` (SHA-256 `607ad0866dd25ed3764711b4467a9b60708353a599485b5249ff4cbe0e870245`). The query passes `/flora/subagent/thread/turns` and `{parameters:{query:{conversationId,threadId,limit:1}}}` to `safeGet`. The shared client maps that method to `GET`, serializes the query through its common URL builder, and combines request-client default headers with any per-call `additionalHeaders`; this call supplies no explicit `additionalHeaders`. The `safeGet` wrapper then uses the shared request path rather than a panel-specific fetch implementation. Relevant definitions are near byte offsets `3391383` (`getRequestTarget`), `3392031` (`makeRequest`), and `3396050` (`safeGet`).
+
+This establishes the client-side route, query, method, and shared request construction boundary. The inspected call site does not reveal the resolved default header values, server authorization checks, endpoint implementation, or response selection on the server; no request was sent. Static extracted-bundle evidence only.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
