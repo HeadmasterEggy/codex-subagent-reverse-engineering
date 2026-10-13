@@ -75,8 +75,21 @@ After the whole-app pass, five files were extracted individually from the same `
 | `webview/assets/subagents-6af1a27d0027.js` | `706c241e8bfb4399746842434ea79137889a05213f28990ed354171383d04db2` | Populates a thumbnail from `getSubagentDescendantSnapshot(parentConversationId)`. |
 | `webview/assets/verify-descendant-d02f27822163.js` | `dc7baa2e1adc9b3b469f2e766c3b88ea25cdecd098534a9e39ee7c2b88596554` | Checks ancestry to the requested parent, rejects cycles and host mismatch, and hydrates missing ancestry/transcript data. |
 | `webview/assets/chatgpt-subagent-final-response-query-b2b6816e81df.js` | `43b96d88ea4b71bdda82e04d2e137531c0ce726e17559de7bde9be018d9d5012` | Queries `/flora/subagent/thread/turns` with parent id, child id and `limit: 1`; selects the last non-empty agent message, preferring `phase=final_answer`. |
+| `webview/assets/app-shared-8bd9d0399038.js` | `607ad0866dd25ed3764711b4467a9b60708353a599485b5249ff4cbe0e870245` | Contains the `SubagentTopology` snapshot/discovery implementation used by the local subagents UI. |
 
 These client resources indicate that descendant discovery, child identity validation, history hydration, and final-response retrieval are distinct steps. The panel can show a child as done while its final response is still loading. This does not establish that a live session executed the code, nor does it reveal the server-side endpoint implementation or authorization rules. To reproduce extraction on macOS, use `npx --yes @electron/asar extract-file <app.asar> <resource-path>` and hash the resulting file with `shasum -a 256`.
+
+### SubagentTopology static path
+
+The extracted `app-shared` bundle exposes a store facade: `getSubagentDescendantSnapshot(parentId)` returns currently known descendants, `isComplete: false`, and an `isLoading` flag based on in-flight discovery. Discovery is separate and can reconcile its result with a snapshot of runtime status captured before the asynchronous reads. Full-subtree and direct-child discovery use separate in-flight maps and reuse matching work.
+
+- With thread-list filters supported, discovery queries `thread/list` for `sourceKinds: ["subAgentThreadSpawn"]`, `archived: false`, `sortKey: "created_at"`, descending, `limit: 200`, and `useStateDbOnly: true`. At app-server versions at least `0.143.0-alpha.16`, it uses `ancestorThreadId`; on older versions, it queries each `parentThreadId` and walks descendants. Paging stops at the parent's creation-time boundary and repeated cursors make the result incomplete.
+- Without thread-list filters, observed spawn IDs are supplemented from history. `thread/items/list` extracts `subAgentActivity(started)` and `collabAgentToolCall(spawnAgent)` IDs. For a paginated-history thread not yet cached, `thread/turns/list` is scanned page by page to reconstruct child IDs from turn items.
+- Candidate children not already known are loaded with `thread/read(includeTurns: false)`. A result is accepted only if its ID matches the requested child and its parent matches the current node. At most two children are fetched concurrently. Failures, identity mismatches, or incomplete nested-history reads preserve `isComplete: false`.
+- When a spawn event identifies exactly one child already in the store with a matching parent, the app first hydrates that child in the background and discovers its subtree. Otherwise it falls back to discovering the parent's full descendant set.
+- The runtime item-event path calls `discoverForSpawn` when it receives `collabAgentToolCall(spawnAgent)` or `subAgentActivity(started)`. This is an event-driven discovery trigger distinct from the UI's read of the current store snapshot; static code does not establish that opening the panel always launches a fresh query.
+
+These are client-side static observations. The bundle does not reveal server persistence, filtering implementation, authorization, or whether each host uses the same route. `isComplete` describes discovery coverage in this client algorithm; it is not evidence that all remotely existing subagents are known.
 
 ## Reproduction and limits
 
