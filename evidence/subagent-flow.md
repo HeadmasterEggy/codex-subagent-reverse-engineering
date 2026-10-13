@@ -300,6 +300,8 @@ Relevant extracted assets: `local-conversation-page-a83a1af2c24b.js`, `local-con
 
 The `canInteract` field is assembled in `app-primary-6f60e9ac4103.js` from indexed parent-turn references: `spawnAgent` sets it true, while `wait`, `sendInput`, and `resumeAgent` (unless the previous tool is `closeAgent`) can carry forward the prior true value. The UI uses this field to choose the direct background-agent opener versus the Subagents panel. This establishes client routing semantics only, not server authorization or current runtime status.
 
+The direct background-agent opener separately activates the child thread summary with `addToRecent: false`, ensures its first page is loaded, then creates or reuses a durable `background-agent` tab keyed by the child conversation ID. The Subagents opener instead creates/updates a right-side `subagents` panel tab and stores the selected child ID in its route. These are distinct client navigation containers; neither establishes runtime execution by itself.
+
 ### SubagentTopology static path
 
 The extracted `app-shared` bundle exposes a store facade: `getSubagentDescendantSnapshot(parentId)` returns currently known descendants, `isComplete: false`, and an `isLoading` flag based on in-flight discovery. Discovery is separate and can reconcile its result with a snapshot of runtime status captured before the asynchronous reads. Full-subtree and direct-child discovery use separate in-flight maps and reuse matching work.
