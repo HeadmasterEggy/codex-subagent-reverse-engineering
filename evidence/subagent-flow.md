@@ -464,6 +464,14 @@ A sanitized process snapshot taken on 2026-10-14 also showed the desktop main pr
 
 The connection-local `subagentThreadIds` evidence therefore has two different lifecycle scopes: same-instance transport reconnect retains the set; remote host replacement constructs a fresh connection with a fresh set, with no direct child-ID backfill found in the inspected bundle. The local constructor path identified here does not pass through that remote replacement factory. The local connection's behavior under a full local manager/process reconstruction, and the host serving any cloud-backed subagent thread, remain unknown. No restart, disconnect, or notification capture was performed.
 
+### Local manager shutdown path in the desktop main bundle
+
+The same `main-CqEoQDOU.js` bundle has one `new hXe(...)` callsite (around offset `3358549`), in the main startup routine. The host manager's `dispose()` (around `3344603`) first disposes remote-connection and host-app-server managers, then gets all registered host IDs; for each it invokes the connection's `dispose()`, removes that connection from the registry, and removes the execution-host entry. Since the local connection was registered in that registry during construction, this loop includes it if it remains registered. The call to each individual connection's `dispose()` is not awaited in the loop.
+
+The normal `will-quit` handler (around `3384353`) prevents the immediate quit, flushes global/settings state and other services, then calls the injected `flushAndDisposeContext` callback through a helper with a 5-second timeout. That callback invokes and awaits the host manager's `dispose()` and the secondary service manager's `dispose()`, then flushes tracing in `finally`; the timeout helper can continue to quit after five seconds even if the callback has not settled. The update-install immediate-exit path also calls the same callback through a five-second bounded wait before exiting. Thus the bundle establishes that shutdown initiates full manager/connection cleanup, not that every connection's asynchronous disposal necessarily finishes before process exit.
+
+The single constructor callsite found in this main bundle supports a fresh manager being built when the app startup routine runs again; it does not establish whether any remote subagent work survives app exit, how its thread/parent relation is rediscovered, or whether a later server notification repopulates the new connection's child-ID set. This is static bundle evidence; no app restart or update exit was triggered.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
