@@ -96,6 +96,8 @@ The signature and notarization establish an OpenAI-signed local artifact, while 
 
 A separate read-only schema inspection of the local app-server `state_5.sqlite` found `threads` and `thread_spawn_edges` tables but no turn, event, transcript, or history table. The database therefore supports the parent-child identity correlation above, not a transcript/UI-history claim. Rollout JSONL files are the source for the recorded event sequence in this sample. This is limited to the inspected database schema; it does not establish that no other local or remote persistence surface exists.
 
+A read-only process/socket snapshot on 2026-10-14 found the ChatGPT desktop main process and 166 descendants running, but no TCP listener in that process tree and no `--remote-debugging-*` or `--inspect` flag on the main process. The main process had the local `.codex/ipc/ipc.sock` Unix socket open; its protocol was not identified, and no data was sent to it. REA's passive Electron workflow requires a loopback CDP endpoint, so this running instance did not provide a supported endpoint for UI notification capture. This is a point-in-time host observation: it does not establish that another launch configuration cannot expose CDP or that the Unix socket lacks other uses. No desktop notification stream or live React render was captured.
+
 ## Finding ledger
 
 | Question | Result | Evidence and boundary |
