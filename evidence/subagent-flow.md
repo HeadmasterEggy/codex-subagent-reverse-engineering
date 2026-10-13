@@ -48,6 +48,8 @@ The same source tag also defines the local `thread/list` relation filter. `paren
 
 Sources: [`thread_processor.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/app-server/src/request_processors/thread_processor.rs), [`state/src/runtime/threads.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/state/src/runtime/threads.rs), [`thread-store/src/local/list_threads.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/thread-store/src/local/list_threads.rs), [`control.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control.rs), [`control/spawn.rs`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/agent/control/spawn.rs), and [`0021_thread_spawn_edges.sql`](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/state/migrations/0021_thread_spawn_edges.sql).
 
+The persisted edge lifecycle has only `open` and `closed`: open means the child is still live or resumable in the spawn graph. Explicit `close_agent` marks the edge closed before shutdown; `shutdown_live_agent` intentionally does not. Thus edge state is not the same field as the UI's working/done/failed status, and a shutdown operation alone does not imply graph closure.
+
 ## Local static evidence
 
 Curated symbol names found in the executable include:
