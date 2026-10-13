@@ -219,6 +219,10 @@ Targeted disassembly now narrows the Guardian call's local control flow. Immedia
 
 The executable's embedded strings include `features.multi_agent_v2.max_concurrent_threads_per_session`, wait timeout keys and validation text, and `codex.multi_agent.result_delivery`. Their presence does not disclose which values were active.
 
+### 2026-10-14 executable identity and terminal-event caller boundary
+
+The packaged CLI was re-identified at `/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex`: `codex-cli 0.162.0-alpha.17.2`, Mach-O 64-bit arm64, SHA-256 `0d5ac7aae20c4eda6242428d5e218c55ba96d8763fda2a271088ff37104b9d28`. In the demangled symbol table, the `Session` implementation exposes `spawn` and `with_window_and_fork_metadata`, but no standalone `Session::send_event` or `maybe_notify_parent_of_terminal_turn` symbol. The matching source is async and the terminal callback may have been inlined into an anonymous future/state machine; absence of a named symbol is not evidence that the path is absent. This refresh narrows the next static step to identifying the event-loop future and its indirect `AgentControl::turn_finished` dispatch. The machine-code edge remains unresolved; no runtime terminal event was observed.
+
 ## V2 child cold-resume configuration
 
 `ensure_v2_agent_loaded` has two materially different resume callers. Both require registered child metadata, a readable stored thread, loadable model-context history, and a resumed history marked V2. They reuse the existing thread ID and rollout; they do not create a replacement child. A caller that supplies the live parent additionally has to prove that the parent is still the same registered running V2 thread in the same runtime registry, and that source/history/stored parent IDs agree.
