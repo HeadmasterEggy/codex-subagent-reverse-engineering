@@ -700,3 +700,17 @@ The renderer bundle `app-initial-6350d04672d0.js` (SHA-256 `604b5d2de4fbb41f3d0d
 In main bundle `main-CqEoQDOU.js` (SHA-256 `09d19386e1f23cf4ccbc950fc40d85a1e8a064a08be588b2a4be6a89f6ada9e6`), the `electron-desktop-features-changed` receiver around `3376389` ignores messages from a dormant primary window, constructs the desktop feature-state object from the received fields, and calls the supplied updater `S` with that state and bundled-plugin eligibility reasons around `3378330`. Startup supplies `setDesktopFeatureAvailability: lt` around `3810445`; the updater normalizes the state and reaches `Xte.setDesktopFeatureAvailability`, which passes the Browser Use availability values to `BrowserSessionRegistry.setBrowserUseNativePipeEnabled` (implementation around `1795810`, call around `3808986`). This statically connects renderer-resolved feature state to the main-process registry pipe gate. It refines the earlier observation of false initial defaults: those defaults alone do not describe the later effective state.
 
 This is static propagation evidence only. No current feature-state payload, IPC event, emitted availability log, or effective native-pipe state was captured from the running desktop app. Bundle offsets are build-specific source-string positions.
+
+### Inputs that determine renderer Browser Use availability
+
+The imported renderer helper `fWe` maps to export `pJ` from `app-shared-8bd9d0399038.js` (SHA-256 `607ad0866dd25ed3764711b4467a9b60708353a599485b5249ff4cbe0e870245`), whose implementation is `GJr` around offset `5355395`. It combines several independent requirements before returning `available`, `allowed`, `isLoading`, and `reason`:
+
+- The `browser.in-app` capability must be present (`isCapable`).
+- The host feature list must enable `browser_use`; the helper defaults that feature to enabled if it is absent, but the actual `GJr` call does not supply a host feature default. The feature list is still loaded through the host-aware query.
+- Feature flag ID `410262010` (passed as `isBrowserAgentGateEnabled`) must be enabled.
+- The host/account permission query must not explicitly set `requirements.allowBrowserAndComputerUse` to false. Pending auth/permission requirements keep the result loading. This is a shared browser-and-computer-use permission condition, not a child-specific permission check.
+- Neither `runCodexInWsl` nor the host's WSL classification may indicate WSL; `KJr` then returns `wsl-disabled`.
+
+`KJr` around offset `5356590` returns `available` only after those gates pass. Its reason ordering is explicit: pending requirements first; then permission denial; then platform loading; then browser-pane capability; then the feature flag; then the `browser_use` host feature; then WSL; otherwise available. In `GJr`, both returned booleans `available` and `allowed` are derived from that same final `reason === "available"` result, so the name `allowed` should not be read as an independent raw permission value. This traces the decision inputs in shipped code; it does not reveal their values in the current session or prove that a child tool call uses the browser.
+
+A passive unified-log query for process `ChatGPT` and marker `browser_use_availability_resolved` over the preceding six hours returned no matching records. This is a bounded empty log result only; it does not establish that the renderer did not run or that the feature was unavailable. No live Electron/CDP capture was available in this REA session. Source offsets are build-specific.
