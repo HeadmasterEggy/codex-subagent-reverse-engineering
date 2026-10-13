@@ -410,6 +410,12 @@ The reducer creates child rows from activity path/thread IDs and collaboration-t
 
 The `vin` projection begins near byte offset `1786793`; status reduction in `yin` begins near `1787726`; activity-group projection in `bin` begins near `1789278`; metadata parsing and provider-status mapping are nearby (`Sin` near `1790359`, `Ein` near `1791077`). The app-initial hash identifies the exact extracted resource. Static bundle evidence only; no live conversation selector values or panel render were captured.
 
+### Work detail selection is branch-projection-bound
+
+In `chatgpt-subagents-panel-e608a4ff5e56.js` (SHA-256 `406de5e3b812c5fb5a60ab34c01085e829d13c69fec6eb0d11c22e830d231442`), the detail view resolves `selectedThreadId` by searching the currently projected `subagents` list. If a selection exists but no matching row is present, the panel renders “This subagent is no longer available on the current branch.” The back action clears the selected thread ID. This is a client-side lookup/presentation rule; it does not establish why a row is absent or whether the child still exists elsewhere.
+
+For a completed child, the detail component forwards its `shouldBlockExternalEgress` prop to the Markdown renderer as `externalResourcePolicy: "restricted"` when true and `"allow"` otherwise. The inspected panel code does not establish where that prop is computed or the complete effect of either policy, so this finding records only the conditional passed to the renderer. Relevant code begins near byte offsets `537` (selection and missing-row branch), `6004` (detail renderer), `6442` (branch-unavailable message), and `7757` (policy selection). Static bundle evidence only; no branch switch, rendered UI, or external navigation was exercised.
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
