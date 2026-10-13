@@ -538,6 +538,12 @@ For the initial task, `run_turn` records the accepted input before its first nor
 
 This traces the alpha.9 core path only. No live provider request was captured, and no claim is made about the remote model's exact interpretation of the `AgentMessage` item.
 
+## Mailbox arrival during an active response in alpha.9
+
+An inter-agent message arriving during sampling does not necessarily cancel the stream immediately. The response loop checks only after a completed output item. Its mailbox-preemption checkpoint applies to assistant `Message` items whose phase is `commentary` or `partial_answer`, and to `Reasoning` items; it excludes `AgentMessage` and tool-call/output items. At an eligible checkpoint, pending mailbox work ends the current sampling request with `needs_follow_up = true` when `Feature::DeferMailboxPreemption` is disabled. The feature spec declares `defer_mailbox_preemption` default-disabled in this source snapshot. This is item-boundary scheduling, not token-by-token preemption. Sources: [`turn.rs`](https://github.com/openai/codex/blob/4753ce3d19df9ffa58353736c4ffde49ed071589/codex-rs/core/src/session/turn.rs#L2804-L2868) and [`features/src/lib.rs`](https://github.com/openai/codex/blob/4753ce3d19df9ffa58353736c4ffde49ed071589/codex-rs/features/src/lib.rs#L1498-L1505).
+
+The alpha.9 scenario fixture models a response paused after a reasoning, commentary, or partial-answer item, queues two `trigger_turn = false` messages, then releases the response containing an `update_plan` tool call. Its assertions expect a mailbox-preemption trace in the non-deferred configuration; with deferral enabled, the planned tool result appears in the next request alongside both queued agent messages. The fixture expects two model requests in either configuration. This is evidence of intended/source-tested behavior, not a test run or live-provider observation. Runtime feature configuration and exact behavior of the installed desktop session remain unknown. Source: [`scenarios_mailbox_preemption_tests.rs`](https://github.com/openai/codex/blob/4753ce3d19df9ffa58353736c4ffde49ed071589/codex-rs/core/tests/suite/scenarios_mailbox_preemption_tests.rs#L35-L197).
+
 ## Reproduction and limits
 
 Run `scripts/collect-macos-evidence.sh` to re-check the installed artifact identity and selected static symbol/string names. The report intentionally omits full disassembly and the app bundle. It makes no claim about server-side routing, remote executors, UI service internals, token cost, or actual completion timing.
