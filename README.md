@@ -61,6 +61,8 @@ A follow-up exact-string scan of the installed build's full app bundle found no 
 
 The renderer also subscribes to the local conversation over its app-host RPC bridge, and the conversation reset/update contract carries `historyComplete` into transcript state. Static tracing now follows that subscription through the trusted preload/main-process port handoff, per-window host object, RPC wrapper, transcript subscription registry, initial thread-store snapshot, and transcript delta notifications. This path is distinct from the `threadFieldReaders.historyComplete` subscription API. No runtime RPC event or selected-child value was captured; see the [renderer conversation RPC boundary](evidence/subagent-flow.md#renderer-conversation-rpc-carries-history-completeness-snapshots).
 
+The same installed build's notification ingress is now traced from the per-host connection through the main-process host-event adapter into shared manager `kM.onNotification`, then through `NS` dispatch to item reducer `Qx`. Completed spawn tool calls and started subagent activity items conditionally trigger child-thread discovery. This closes the static notification-to-reducer wiring, not a live notification, successful child lookup, transcript delta, or visible UI update; see [the app-server notification ingress trace](evidence/subagent-flow.md#app-server-notifications-enter-the-shared-conversation-reducer).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:

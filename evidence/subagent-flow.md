@@ -2347,3 +2347,22 @@ The host object returned by `createAppHost` is a `Zde` instance populated with t
 The thread store's subscription registry keys conversation subscriptions by thread ID and the `transcript` field. Its initial callback reads `owner.getTranscript(threadId)`; subsequent transcript notifications carry the update value. When the owner updates a conversation, it checks for transcript subscribers, asks `stateReaders.getTranscriptUpdate(...)` for a delta, and notifies those subscribers if a delta exists. Thus the renderer's conversation stream is backed by the thread-store transcript subscription/update path. This is separate from the `ConversationStateReaders` thread-field subscription API: the two APIs can expose overlapping facts such as history completeness, but the renderer conversation subscription does not dispatch through `threadFieldReaders.historyComplete`.
 
 This closes the static renderer-to-thread-store transcript subscription mapping, including its initial snapshot and update source. It does not trace every app-server notification into every conversation mutation, capture a live RPC event, or prove a selected child's runtime `historyComplete` value, React commit, DOM, or visible paint. The causal claim remains bounded to the static transcript data path; it does not establish that history completeness is intentionally a subagent capability flag.
+
+## App-server notifications enter the shared conversation reducer
+
+I followed the notification ingress in the same installed Desktop build (`26.1007.71326`, ASAR SHA-256 `2f231a64e6dd30111bcd09e03c149cd06c8679b25914842772423251c4608ded`). In `main-CqEoQDOU.js` (SHA-256 `09d19386e1f23cf4ccbc950fc40d85a1e8a064a08be588b2a4be6a89f6ada9e6`), `Afe` is constructed as the host app-server-manager registry. For each connected host it calls the supplied factory (`Ofe`), which creates the shared manager and binds a `dfe` host-event adapter to the connection. The adapter registers `onNotification`; for current, recognized notifications (excluding `configWarning` and `deprecationNotice`, and with special handling for native `serverRequest/resolved`), it forwards `(method, params, ...)` to the bound manager.
+
+In `src-BJv5Mk7n.js` (SHA-256 `72e2b366d574206f76fc079c79b64c31ce378970a797475ded8709908d338f08`), that manager is `kM`. Its `onNotification` method checks that the manager is active and thread execution is attached, performs account-change cleanup when applicable, then calls `NS(notificationReductionContext, method, params, ...)`. `NS` applies notification buffering and follower/ownership filters before dispatching thread events to `dS`, turn events to `MS`, and item events to `Qx`. For `item/started` and `item/completed`, `Qx` updates the matching conversation's turn items; its completed-item branch also invokes `subagentTopology.discoverForSpawn` for a `collabAgentToolCall` whose tool is `spawnAgent`, or a `subAgentActivity` whose kind is `started`.
+
+This closes the static ingress-to-reducer chain for the inspected notification path:
+
+```text
+app-server connection event
+  → main-process dfe host-event adapter
+  → bound shared kM manager.onNotification
+  → NS notification filtering and dispatch
+  → Qx item/conversation mutation
+  → conditional child-thread discovery for spawn/start items
+```
+
+The adapter filters some notifications and requests; this is not a claim that every server notification reaches the reducer. The bundle shows the static handler wiring and reducer calls, not a captured live notification, successful child lookup, resulting transcript delta, renderer receipt, React commit, or visible paint. In particular, this establishes the producer-side route that was missing from the renderer transcript section, but does not prove that a specific item caused a specific UI update in this Desktop session.
