@@ -72,7 +72,7 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 - Static symbols and strings establish that named code/data is present, not that a particular runtime path executed.
 - Disassembly is interpreted narrowly and cross-checked against the versioned public source where possible.
 - A matching version tag is not a signed build-provenance statement.
-- Live CLI evidence now includes one successful single-child probe and one controlled root/child/grandchild V2 run on standalone CLI `0.162.1`. In the nested run, both caller-local waits completed without timeout; the child received the grandchild result, then the root received the child's summary and no direct grandchild result. A separate ephemeral probe failed because no parent rollout was found. These are scoped CLI runs, not a Desktop conversation-host reproduction. No network capture or private server-side implementation analysis is included.
+- Live CLI evidence now includes one successful single-child probe and two controlled nested V2 runs on standalone CLI `0.162.1`. In the natural-completion run, both waits completed without timeout; the child received the grandchild result, then the root received the child's summary and no direct grandchild result. In the direct-grandchild-follow-up run, the root recorded the grandchild's Completed activity before calling wait, yet wait timed out after 60 seconds; the grandchild follow-up turn had already completed. These scoped runs are not Desktop conversation-host reproductions. A separate ephemeral probe failed because no parent rollout was found. No network capture or private server-side implementation analysis is included.
 
 ## References
 
