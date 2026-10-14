@@ -43,6 +43,8 @@ That stale result is retried using fresh revision snapshots under the same deadl
 
 Work inline activity blocks group only contiguous, schema-valid activity/tool-call contributions with the same renderer turn key, then attach the reduced block to the run's final transcript message. Invalid metadata and ordinary messages break a run; the Work panel's overall child rows are a separate output of the same reducer. See [the inline activity grouping trace](evidence/subagent-flow.md#work-activity-blocks-group-contiguous-metadata-contributions-by-turn).
 
+An installed ChatGPT Desktop `26.1007.71326` (build `20398`) follow-up revalidated the local panel path in a newer app bundle. Its selected-child opener checks the ancestry chain, rejects cycles and known host mismatches, guards against stale async tab selections, and conditionally hydrates parent/child history; the separate Work panel final-response query requests one turn and prefers a non-empty `final_answer` message. REA parsed four caller-selected resources from the exact ASAR, leaving 16,236 inventoried files outside this analysis. This is static code evidence, not a live UI or request capture. The ASAR also contains native integrity contradictions; see [the versioned bundle record](evidence/subagent-flow.md#installed-desktop-26100771326-selected-child-panel-path).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:

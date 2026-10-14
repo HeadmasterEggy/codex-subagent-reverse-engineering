@@ -1445,3 +1445,34 @@ There is a narrower spec/implementation mismatch in this snapshot: the V2 tool d
 The generic V2 `wait_agent` output does not mean the underlying agent message is discarded. The parent input queue drains mailbox entries into `TurnInput::InterAgentCommunication`; the turn-input recorder converts each communication to a model `AgentMessage` response item and records it in conversation history. Before a subsequent sampling request, the turn loop drains accepted pending input into history, then constructs the model input from `clone_history().for_prompt(...)` ([mailbox drain into turn input](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/input_queue.rs#L237-L275), [pending-input drain](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/input_queue.rs#L400-L432), [communication recorded as model input](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/mod.rs#L3917-L3974), [turn-input routing](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/hook_runtime.rs#L766-L770), [next request built from conversation history](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/turn.rs#L418-L448) and [history sampling input](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/src/session/turn.rs#L522-L544)).
 
 An existing guardian notification integration test exercises the separation: the parent executes V2 `wait_agent`, then on a later parent turn the captured model request contains the child's `agent_message` with sender, recipient, and payload. The assertion establishes delivery into that later request for this scenario; it does not assert that the message is part of the wait tool's output or that every kind of mailbox message is delivered on the same schedule ([wait setup and later request assertion](https://github.com/openai/codex/blob/740e5af33c71225640e0c1c1555c514c2c93ab74/codex-rs/core/tests/suite/guardian_subagent_notification_tests.rs#L177-L225)). This corrects the shorthand that a caller must fetch the result “through another tool”: V2 wait is only the wake signal, while the actual communication can arrive as separate model input. Test inspected, not run; no runtime experiment was performed.
+
+## Installed Desktop 26.1007.71326 selected-child panel path
+
+### Identity and analysis scope
+
+The inspected artifact is the installed ChatGPT Desktop ASAR at `/Applications/ChatGPT.app/Contents/Resources/app.asar`, version `26.1007.71326`, build `20398`, SHA-256 `2f231a64e6dd30111bcd09e03c149cd06c8679b25914842772423251c4608ded`. The focused REA analysis is Evidence `ev_32efffb85acf191e539f8908ce04dd3ab2ae69144b66646419ccc74cbbc9d8d9`. It parsed four caller-selected JavaScript resources, with no parse failures, and left 16,236 of 16,240 inventoried files outside this analysis. Bundle bootstrap code was not executed.
+
+Selected resources and extracted-byte SHA-256:
+
+- `webview/assets/verify-descendant-a6adc22618ed.js` — `c49be67f028281008c536aeccafa3ad78b963949d9845dd2f7f742fce9f0b1f2`
+- `webview/assets/open-local-conversation-subagents-panel-ee51ac1ef713.js` — `68723988fe517044833e75ad754726e9e0f2d20cc5d46c1a97ef4cf215426de7`
+- `webview/assets/local-conversation-subagents-panel-tab-b201494eb46e.js` — `845c0ca741ba9fc3abe92f46a9bed78195da59de94b08ae8008472390d63e7fc`
+- `webview/assets/chatgpt-subagent-final-response-query-de38dfd11904.js` — `abe092ebb32ef6dc05bb442fcbe5e66a466d535c4813bd1cadb1ec7dc2f8ac6f`
+
+### Local selected-child route
+
+The selected-child opener creates a parent-keyed durable panel route, then verifies the requested child against its parent ancestry. The verifier rejects a child equal to its parent, repeated ancestry IDs, known excluded IDs, and a non-null host ID that conflicts with the caller's host. A missing host ID is not treated as proof of mismatch. If ancestry ends at a different parent, it consults the parent's descendant snapshot; when the child is missing and the snapshot is incomplete, it may hydrate background thread metadata without turns, reread ancestry, and verify again. On a successful chain it ensures the child's first page.
+
+The opener checks the current tab after asynchronous boundaries. If the tab was removed or now selects another child, the stale operation does not update it. Failed verification resets the panel route to its overview. After successful verification, parent and child history hydration is conditional: a forked child can skip parent-turn hydration; otherwise the parent may be loaded when unresolved. Child history is loaded only when the cached transcript does not already satisfy the inspected turn/message conditions. These are static branch conditions, not proof that any particular request ran in the installed app.
+
+The local overview derives rows from imported conversation data, separates `done` from other statuses, caps those groups at 10 and 4 respectively, and passes `canInteract` only when the selected child projection explicitly says `true`. The selected child's displayed model/reasoning label is read from cached thread metadata.
+
+### Separate Work final-response query
+
+The Work subagent panel uses another component and request path. Its final-response query is keyed by parent conversation, child thread, and activation ID; it asks `/flora/subagent/thread/turns` for one turn. It scans returned items backward for a non-empty agent message and immediately prefers one marked `final_answer`; otherwise it returns the last non-empty agent message found. Retries are limited to the specific “not available yet” error class, with at most two short randomized backoffs, and are disabled on window focus. This is a static query implementation; no endpoint request was captured.
+
+### Integrity and evidence limits
+
+The ASAR integrity metadata contradicts the observed bytes for multiple native resources. For `node_modules/@worklouder/device-kit-oai/node_modules/@worklouder/wl-device-kit/dist/native/darwin-arm64/permissions.node`, the declared SHA-256 is `5f2f66c4fe19493bba7ca2e0c322ed256e39f66d4a58865875431c2ddd4d58a1`; the observed SHA-256 is `ef66e12f1f573b46500bb85942ae22da38e6f10792bfd90f62be1c8b320898e5`. Other reported contradictions include native resources under better-sqlite3, node-pty, objc-js, and device-kit. The analysis used record-and-continue; this record does not claim the package is fully integrity-verified.
+
+All behavior above is derived from caller-selected inert JavaScript in this exact bundle. Graph coverage is incomplete, and static imports, routes, and branches do not establish runtime execution, actual endpoint traffic, or UI state. This evidence does not establish a behavior change from an earlier build.
