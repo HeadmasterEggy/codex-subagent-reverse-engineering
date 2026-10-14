@@ -2366,3 +2366,24 @@ app-server connection event
 ```
 
 The adapter filters some notifications and requests; this is not a claim that every server notification reaches the reducer. The bundle shows the static handler wiring and reducer calls, not a captured live notification, successful child lookup, resulting transcript delta, renderer receipt, React commit, or visible paint. In particular, this establishes the producer-side route that was missing from the renderer transcript section, but does not prove that a specific item caused a specific UI update in this Desktop session.
+
+## Item notification updates feed the conversation transcript subscription
+
+I connected the item reducer above to the thread-store transcript publisher. In `src-BJv5Mk7n.js`, `Qx` applies `item/started` and `item/completed` by calling the manager's `updateConversationState` for the notification's thread. The `kM` manager method delegates that call to `threadStore.updateConversationState`. The thread-store implementation applies the mutation, calls its own `setConversation` with the changed state and patch metadata, then notifies conversation callbacks.
+
+The `setConversation` implementation writes the updated state into the conversation map. If the subscription registry has conversation subscribers for that thread, it calls `stateReaders.getTranscriptUpdate(previous, next, ...)`; when the result is non-null, it calls `subscriptions.notifyTranscript(threadId, delta)`. This is the same subscription registry that the previously traced RPC `subscribeConversation` path uses, with `threadStore.getTranscript` as the initial snapshot and the `transcript` field as the update subscription.
+
+For the inspected item-notification cases, the static producer-to-subscriber path is therefore:
+
+```text
+app-server item notification
+  → kM.onNotification → NS → Qx
+  → kM.updateConversationState
+  → threadStore.updateConversationState
+  → threadStore.setConversation
+  → stateReaders.getTranscriptUpdate(previous, next)
+  → subscriptions.notifyTranscript(threadId, delta)
+  → conversation RPC subscriber
+```
+
+The relevant shared-bundle anchors are `Qx` around source offsets `579,720..584,000`, `kM.updateConversationState` around `1,003,917`, thread-store `setConversation` around `449,977`, and thread-store `updateConversationState` around `457,870`. The notification path can buffer or filter events, mutations can be no-ops, and transcript delta generation can return null; the diagram is a conditional static path, not proof every event produces a delta. No live server notification, non-null delta, RPC delivery, selected-child state, React commit, DOM, or visible paint was captured. Together with the preceding ingress and renderer-subscription sections, this closes the inspected static source path through the RPC subscriber boundary while leaving actual session execution unverified.

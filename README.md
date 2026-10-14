@@ -63,6 +63,8 @@ The renderer also subscribes to the local conversation over its app-host RPC bri
 
 The same installed build's notification ingress is now traced from the per-host connection through the main-process host-event adapter into shared manager `kM.onNotification`, then through `NS` dispatch to item reducer `Qx`. Completed spawn tool calls and started subagent activity items conditionally trigger child-thread discovery. This closes the static notification-to-reducer wiring, not a live notification, successful child lookup, transcript delta, or visible UI update; see [the app-server notification ingress trace](evidence/subagent-flow.md#app-server-notifications-enter-the-shared-conversation-reducer).
 
+The item reducer's state update is now followed through `kM.updateConversationState`, the thread store's `setConversation`, transcript-delta generation, and `subscriptions.notifyTranscript`, reaching the same registry used by the conversation RPC subscriber. This closes the inspected static item-notification-to-RPC-subscriber path; notifications may be filtered, updates may be no-ops, and no live delivery or visible rendering was captured. See [the notification-to-transcript subscription trace](evidence/subagent-flow.md#item-notification-updates-feed-the-conversation-transcript-subscription).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:
