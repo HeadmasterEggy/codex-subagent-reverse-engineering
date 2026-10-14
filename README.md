@@ -72,7 +72,7 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 - Static symbols and strings establish that named code/data is present, not that a particular runtime path executed.
 - Disassembly is interpreted narrowly and cross-checked against the versioned public source where possible.
 - A matching version tag is not a signed build-provenance statement.
-- One live CLI V2 probe successfully spawned a child and captured parent/child rollout evidence; a separate ephemeral probe failed because no parent rollout was found. Neither run used the desktop conversation host. No network capture or private server-side implementation analysis is included.
+- Live CLI evidence now includes one successful single-child probe and one controlled root/child/grandchild V2 run on standalone CLI `0.162.1`. In the nested run, both caller-local waits completed without timeout; the child received the grandchild result, then the root received the child's summary and no direct grandchild result. A separate ephemeral probe failed because no parent rollout was found. These are scoped CLI runs, not a Desktop conversation-host reproduction. No network capture or private server-side implementation analysis is included.
 
 ## References
 
