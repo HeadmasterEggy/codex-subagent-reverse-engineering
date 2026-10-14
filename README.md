@@ -65,6 +65,8 @@ The same installed build's notification ingress is now traced from the per-host 
 
 The item reducer's state update is now followed through `kM.updateConversationState`, the thread store's `setConversation`, transcript-delta generation, and `subscriptions.notifyTranscript`, reaching the same registry used by the conversation RPC subscriber. This closes the inspected static item-notification-to-RPC-subscriber path; notifications may be filtered, updates may be no-ops, and no live delivery or visible rendering was captured. See [the notification-to-transcript subscription trace](evidence/subagent-flow.md#item-notification-updates-feed-the-conversation-transcript-subscription).
 
+The generic host RPC implementation also statically closes the callback transport: function arguments become exported RPC stubs, and invocations are sent as pipeline frames through a `structuredClonable` MessagePort transport. This explains how the transcript listener crosses the traced renderer/main bridge, but no live port message or UI update was captured. See [the callback transport trace](evidence/subagent-flow.md#conversation-subscription-callbacks-cross-the-messageport-rpc-bridge).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:

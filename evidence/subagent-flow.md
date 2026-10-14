@@ -2387,3 +2387,22 @@ app-server item notification
 ```
 
 The relevant shared-bundle anchors are `Qx` around source offsets `579,720..584,000`, `kM.updateConversationState` around `1,003,917`, thread-store `setConversation` around `449,977`, and thread-store `updateConversationState` around `457,870`. The notification path can buffer or filter events, mutations can be no-ops, and transcript delta generation can return null; the diagram is a conditional static path, not proof every event produces a delta. No live server notification, non-null delta, RPC delivery, selected-child state, React commit, DOM, or visible paint was captured. Together with the preceding ingress and renderer-subscription sections, this closes the inspected static source path through the RPC subscriber boundary while leaving actual session execution unverified.
+
+## Conversation subscription callbacks cross the MessagePort RPC bridge
+
+I followed the last generic transport boundary used by the conversation subscription. The installed Desktop bundle's `startup-requirements-C6B1x9gL.js` (SHA-256 `73f93b81152bff48cd27bcebcf27c430fb763e5c7418c67824950f4092ba933d`) implements `Mt` as the RPC connection. Its `Je(port, ...)` helper constructs a `Ye` transport around the supplied `MessagePort`; `Ye` declares `encodingLevel = "structuredClonable"`, sends RPC frames with `MessagePort.postMessage`, and receives `message` events. The main bundle's `CXe` path, described in the renderer-conversation RPC section above, supplies that port to `Mt`.
+
+The RPC value codec treats a function passed as an RPC argument as an exported target: `M.devaluateImpl` asks the session to `exportStub` and encodes an `export` reference. The peer decodes that reference into an import stub. When invoked, `sendCall` emits a `push` frame containing a `pipeline` call; the transport posts that frame through the port. On the receiving side, `readLoop` handles `push` frames and evaluates the pipeline against the exported target. In `yo.subscribeConversation`, the host subscription callback is the callback passed to the conversation subscription registry, so this generic mechanism explains how a transcript listener can be represented across the renderer/main RPC boundary and how later invocations return across it.
+
+For the inspected subscription path, the static transport chain is:
+
+```text
+renderer subscribeConversation RPC call
+  → callback argument exported as RPC stub
+  → structured-cloneable MessagePort frame
+  → host imports callback and registers it with transcript subscription
+  → notifyTranscript invokes callback
+  → callback invocation becomes an RPC pipeline frame over MessagePort
+```
+
+The relevant RPC implementation anchors are `Ke` (connection/session) around offset `37,340`, `sendCall` around `41,273`, `readLoop` around `43,245`, and the `Je`/`Ye` MessagePort transport around `45,672..46,400`. This closes the static callback-transport mechanics for the inspected host RPC implementation. It does not show an actual callback argument, a live `postMessage`, a delivered delta, a selected-child value, or a renderer/UI update in this session. The conclusion is bundle-specific and conditional on the traced subscription and transport being used at runtime.
