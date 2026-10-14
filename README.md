@@ -59,6 +59,8 @@ A 2026-10-15 selected-resource trace distinguishes the two installed panel imple
 
 A follow-up exact-string scan of the installed build's full app bundle found no literal in `Frameworks`, `MacOS`, or `PlugIns`; outside the ASAR, the only hit is the known longer analytics event name in the embedded CLI. The extracted ASAR text scan still finds the exact metadata keys only in the two previously identified JavaScript resources. This narrows local literal locations without excluding computed names or upstream generation. See [the non-ASAR scan](evidence/subagent-flow.md#installed-non-asar-resource-scan-finds-no-transcript-metadata-writer) and [whole-app scan boundary](evidence/subagent-flow.md#whole-app-bundle-literal-scan-adds-no-writer-outside-resources).
 
+The renderer also subscribes to the local conversation over its app-host RPC bridge, and the conversation reset/update contract carries `historyComplete` into transcript state. This confirms that history completeness is present in renderer-facing conversation data, but does not yet connect the main process's separate `thread.historyComplete` field-reader notifications to the subagent renderer flag. No runtime RPC or selected-child value was captured; see the [renderer conversation RPC boundary](evidence/subagent-flow.md#renderer-conversation-rpc-carries-history-completeness-snapshots).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:
