@@ -77,5 +77,5 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 - [OpenAI Codex repository](https://github.com/openai/codex)
 - [Version tag `rust-v0.162.0-alpha.17.2`](https://github.com/openai/codex/tree/740e5af33c71225640e0c1c1555c514c2c93ab74)
 - [Version tag `rust-v0.162.1`](https://github.com/openai/codex/tree/092d3acd6bec3e3a14bdc7e7a2810ab628ab759d)
-- [Codex multi-agent guide](https://developers.openai.com/api/docs/guides/agents-api/multi-agent)
+- [Responses API multi-agent guide](https://developers.openai.com/api/docs/guides/responses-multi-agent)
 
