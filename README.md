@@ -28,6 +28,8 @@ Matching each parent's `wait_agent` call to its recorded output adds an importan
 
 The 0.162.1 source snapshot also exposes structured agent-tree shutdown reporting: teardown failures are classified by operation and phase, retained up to 64 per tree, and include abandoned cleanup guards. It also conditionally preserves forked `AdditionalTools` declarations together with their context-comparison baseline. These are contrasts between public source snapshots, not proof of a linear version transition or the introducing commit; this checkout was shallow when ancestry was checked. They are source evidence, not live observations from the ChatGPT desktop host.
 
+Work inline activity blocks group only contiguous, schema-valid activity/tool-call contributions with the same renderer turn key, then attach the reduced block to the run's final transcript message. Invalid metadata and ordinary messages break a run; the Work panel's overall child rows are a separate output of the same reducer. See [the inline activity grouping trace](evidence/subagent-flow.md#work-activity-blocks-group-contiguous-metadata-contributions-by-turn).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:
