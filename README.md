@@ -67,6 +67,8 @@ The item reducer's state update is now followed through `kM.updateConversationSt
 
 The generic host RPC implementation also statically closes the callback transport: function arguments become exported RPC stubs, and invocations are sent as pipeline frames through a `structuredClonable` MessagePort transport. This explains how the transcript listener crosses the traced renderer/main bridge, but no live port message or UI update was captured. See [the callback transport trace](evidence/subagent-flow.md#conversation-subscription-callbacks-cross-the-messageport-rpc-bridge).
 
+The renderer-side conversation listener applies reset/change updates to local transcript state and exposes derived turn/item/timeline/subagent-activity projections; it also reports rendered turn IDs back as a history viewport. The mounted Subagents panel consumer and actual React/DOM rendering remain unobserved. See [the renderer transcript projection trace](evidence/subagent-flow.md#renderer-conversation-deltas-update-the-local-transcript-projection).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:

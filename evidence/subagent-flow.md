@@ -2406,3 +2406,21 @@ renderer subscribeConversation RPC call
 ```
 
 The relevant RPC implementation anchors are `Ke` (connection/session) around offset `37,340`, `sendCall` around `41,273`, `readLoop` around `43,245`, and the `Je`/`Ye` MessagePort transport around `45,672..46,400`. This closes the static callback-transport mechanics for the inspected host RPC implementation. It does not show an actual callback argument, a live `postMessage`, a delivered delta, a selected-child value, or a renderer/UI update in this session. The conclusion is bundle-specific and conditional on the traced subscription and transport being used at runtime.
+
+## Renderer conversation deltas update the local transcript projection
+
+I followed the `listener` passed to `s.rpc.subscribe({type: "conversation", ...})` in `app-shared-8340f229c2b3.js` (SHA-256 `3b4cabc382e71f0da7398393a619d7c62d13dfae598a5fe2e9880ab8d31d1bf5`). The listener checks that its subscription is still current, then passes each update into a reducer. A `reset` creates a transcript snapshot; `reset-start`/`reset-part`/`reset-commit` stage and commit chunked resets; `changes` applies typed deltas inside `wO(...)`.
+
+The delta reducer writes facts into the renderer's local reactive state: history resume/completeness, item timeline, realtime items/text, item text/parts, transcript items, turn details and subagent-activity flags, item slots, and transcript structure. It then triggers derived selectors from those stores; for example, a selector assembles turns with their materialized items, while other selectors expose transcript items, turn status, and the item timeline. The conversation subscription also requests a `historyViewport` based on rendered turn IDs and passes it back through `setHistoryViewport`, so the provider and host can coordinate transcript pagination/retention around the currently rendered turns.
+
+The static consumer path now reaches the renderer's transcript-state projection:
+
+```text
+thread store emits transcript delta
+  → RPC callback reaches renderer subscription listener
+  → reset/change reducer validates update and commits local state
+  → reactive selectors expose turns, items, status, timeline, and subagent activity
+  → history viewport follows rendered turn IDs back to host
+```
+
+This narrows the remaining UI gap: the bundle shows the state projection consumed by the renderer, but this trace does not identify a particular mounted Subagents panel component, prove which selector it reads for a selected child, or capture a React commit, DOM change, or visible paint. The listener may reject stale updates, subscription failure may mark the provider unavailable, malformed deltas can fail, and the host may produce no delta. This is static wiring for the installed bundle, not a live UI observation.
