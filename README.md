@@ -69,6 +69,8 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 
 ## Evidence boundaries
 
+- A 2026-10-15 trace at upstream `835cd7552d6a089bbdfeb21b001cb76c503249c7` confirms that follow-up caller identity reaches the child turn through `InterAgentCommunication.author`, even when `TurnStartOptions.initiating_agent_path` is omitted. Completion can send the initiator a lifecycle event, but `wait_agent` listens to mailbox/steer queue activity; the final result remains addressed to the structural parent. This separates UI/lifecycle attribution from mailbox delivery and does not itself reproduce #32203; see the [current-main attribution trace](evidence/subagent-flow.md#current-main-follow-up-attribution-does-not-turn-lifecycle-activity-into-mailbox-input).
+
 - Static symbols and strings establish that named code/data is present, not that a particular runtime path executed.
 - Disassembly is interpreted narrowly and cross-checked against the versioned public source where possible.
 - A matching version tag is not a signed build-provenance statement.
