@@ -93,6 +93,8 @@ The renderer-side conversation listener applies reset/change updates to local tr
 
 A read-only CLI 0.162.1 JSONL run distinguishes the spawn receipt (`pending_init`) from the later `wait` result (`completed`). The event order, feature flags, SHA-256, and evidence limits are recorded in [the standalone CLI run note](evidence/native-cli-v1-run.md) and appended to the [subagent flow ledger](evidence/subagent-flow.md#standalone-cli-01621-v1-spawn-receipt-precedes-child-completion-2026-10-16). This is not a Desktop capture.
 
+The installed Desktop's thread-summary panel also has a separate static UI trace: named background agents with `showInlineActivity` enter a compact Subagents summary, while other named agents enter individual rows with a child-opening callback. This finding is pinned to installed app `26.1007.71326` and the extracted bundle module hash; it is not a live UI capture. See the [two-projection evidence](evidence/subagent-flow.md#installed-desktop-thread-summary-splits-subagents-into-two-ui-projections-2026-10-16).
+
 ## Reproduce local identity checks
 
 On macOS with the same app installed:
