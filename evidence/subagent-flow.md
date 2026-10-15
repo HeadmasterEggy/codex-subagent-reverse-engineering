@@ -2447,4 +2447,26 @@ The static follow-up inspected these extracted resources from Desktop 26.1007.71
 
 In the thread module, exported `Tj` receives `canInteract` (defaulting to true when omitted) and computes `isReadOnly = !canInteract || isWriterConflict` and `showComposer = canInteract && !isWriterConflict` before passing those values to the conversation renderer. Its resume hook is also gated by `shouldResume && canInteract && (isLocal || isShared)`. For the panel path, the explicit boolean handoff means missing row data becomes read-only and hides the composer. This establishes a renderer interaction gate, not server-side authorization or a live UI state.
 
-The producer of the row remains the next open question. The panel imports `Dl` from `app-primary-2a670e99a60c.js` and reads rows through that selector, but that asset was not in the extracted set available to this task. Tracing where the owner assigns `canInteract` is needed to explain why a row is interactive. The prototype run used about 242,197 input tokens (196,864 cached), 1,379 output tokens including reasoning, and about 64 seconds wall time as reported by the CLI; CPU time and peak process-family memory were not measured. This is one research run, not a before/after performance comparison.
+At the time of this first pass, the producer of the row was unresolved. A follow-up extraction and selector trace later resolved the static producer; see “The local row selector derives `canInteract` from parent-thread collaboration items” below. This follow-up still does not establish a live Desktop render. The prototype run used about 242,197 input tokens (196,864 cached), 1,379 output tokens including reasoning, and about 64 seconds wall time as reported by the CLI; CPU time and peak process-family memory were not measured. This is one research run, not a before/after performance comparison.
+
+
+## The local row selector derives `canInteract` from parent-thread collaboration items
+
+A targeted extraction of `webview/assets/app-primary-2a670e99a60c.js` from the same Desktop 26.1007.71326 `app.asar` produced SHA-256 `c002f1b37cb1a48dfab17b89aae2d3f20521b443d65ed64b6c5c1629c6ca528f`. The Subagents panel's imported `Dl` binding resolves to selector `kJ` in this asset. `kJ` loads the parent conversation and its indexed subagent items, gathers known descendants and source-linked threads, and passes cached conversations, parent turns, membership records, and an indexed-item accessor into the row projection (`Sat`). The selector then returns the projected rows consumed by the panel.
+
+The row projection's producer is `Dat`. It walks each parent turn and reads the indexed items for that turn, limited in its fallback path to `collabAgentToolCall` and `subAgentActivity` items. For a `collabAgentToolCall`, each receiver that has a known membership gets a latest-reference record. That record sets `canInteract` to true when the item tool is `spawnAgent`; for subsequent collaboration calls it preserves true only if the prior reference for that child was already true. Calls such as `sendInput`, `wait`, `resumeAgent`, or `closeAgent` do not independently grant interactivity.
+
+For a `subAgentActivity` item, the reducer creates or refreshes a `spawnAgent` reference but preserves `canInteract` only when the previous reference is associated with the same parent turn key; otherwise it defaults to false. A later membership/source-membership projection also writes a strict boolean (`r?.canInteract === true`). `kat` carries the latest reference's boolean into the final row, and the selected local panel then forwards only `selectedRow?.canInteract === true` to the thread component. In the traced renderer code, that boolean gates composer visibility and local resume behavior as described above.
+
+The static data flow is:
+
+```text
+parent conversation + indexed items + descendant memberships
+  → kJ selector resolves parent turns and indexed subagent items
+  → Dat folds spawnAgent/collabAgentToolCall/subAgentActivity references
+  → kat projects latest reference into a row with canInteract
+  → Subagents panel passes strict boolean to selected local thread
+  → thread component gates composer and resume hook
+```
+
+This explains the local renderer's interaction hint and its parent-turn-sensitive propagation. It is not evidence of server-side authorization: the inspected gate is in renderer props/state. No live Desktop `spawnAgent` item, projected row value, React commit, DOM, or visible paint was captured. Bundle offsets are unstable minified positions; the asset hashes identify the inspected files.
