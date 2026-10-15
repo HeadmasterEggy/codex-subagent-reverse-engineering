@@ -2607,3 +2607,17 @@ send_message
 ```
 
 This source distinction does not establish notification delivery in a live agent tree, whether a skipped notice is later surfaced by another notification, or provider-side reading. No tests or live message-board session were run in this pass.
+
+## Current-main V2 child lifetime and explicit tree close (2026-10-15)
+
+At pinned upstream `main` commit `e89b7c442c0433ad5167e72a5a25bb6d0712766a`, V2 spawn acceptance is a lifecycle boundary. The `AgentControl::spawn` contract says that provisional ownership is retained until the acceptance receipt returns; after that, caller cancellation does not retract the accepted child, and later tool-result or transport publication belongs to the caller outside that boundary. The spawn implementation starts the detached completion watcher only when the configured multi-agent version is not V2. Sources: [`agent/api.rs` spawn contract](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/api.rs#L54-L64) and [`control/spawn.rs` watcher gate](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/control/spawn.rs#L975-L991).
+
+Recursive cleanup is explicit. The `close_agent` tool handler calls `LocalAgentControl::close_agent`; that method calls `shutdown_agent_tree`, which finds live descendants and shuts them down. A repository-wide search at this commit found the production call to `shutdown_agent_tree` only from `close_agent`; child terminal handling instead records completion activity and best-effort queue-only result communication to the parent. The graph-store edge enum describes `Open` as a child that is still live or resumable. Sources: [`close_agent.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/tools/handlers/multi_agents/close_agent.rs#L67-L70), [`legacy.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/control/legacy.rs#L47-L50) and [`shutdown_agent_tree`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/control/legacy.rs#L107-L123), [`completion.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/control/completion.rs#L25-L30) and [result delivery](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/agent/control/completion.rs#L92-L140), and [`ThreadSpawnEdgeStatus`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/agent-graph-store/src/types.rs#L4-L12).
+
+```text
+spawn accepted → child lifetime is independent of later caller cancellation
+child completes → completion activity + best-effort result message to parent
+explicit close_agent → close target and live descendants recursively
+```
+
+Therefore natural parent completion or failure is not itself a subtree-close operation; an accepted child can continue independently until it completes or is explicitly closed. This does not mean every child necessarily outlives its parent, nor that result delivery always succeeds. The Subagent Lab prototype uses the same distinction: process close records that task's terminal state and delivers its result, while explicit `cancel` recursively cancels descendants. The upstream source and tests were inspected but not executed against a live managed Desktop session in this pass.
