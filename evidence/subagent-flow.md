@@ -32,6 +32,12 @@ Checked on 2026-10-13. This report distinguishes direct local observations from 
 | Peeled source commit | `740e5af33c71225640e0c1c1555c514c2c93ab74` |
 | Source tag signature | The remote annotated tag resolves to the recorded commit; `git verify-tag` and commit signature inspection found no cryptographic signature. |
 
+## Current installation snapshot (2026-10-15)
+
+The installed ChatGPT app reports version/build `26.1007.71326` / `20398`. Its `Resources/codex-cli/codex-package.json` identifies the embedded CLI as `0.162.0-alpha.17.2` for `aarch64-apple-darwin`; invoking that packaged `bin/codex --version` agrees. Separately, `/Users/joey/.local/bin/codex --version` reports `codex-cli 0.162.1` and has SHA-256 `74c6a6d263f40d65f99c27a815275f5b4ed0bcc2baecc396b4cf3255498bdfc0`. These are distinct installed targets, so observations must identify which executable was used.
+
+Running `features list` directly against each executable under the current invoking-user configuration reports `multi_agent` as stable/enabled, `multi_agent_v2` as stable/disabled, and `multi_agent_v2_dynamic_tools` as under-development/disabled. This output is a CLI configuration snapshot; it is not a trace of the desktop host's resolved configuration, selected model metadata, or model-visible tool list. Explicit V2 CLI runs recorded elsewhere in this ledger override the flag and model conditions and demonstrate a separate capability path.
+
 ## Additional finding: matching subagent-specific literals in the installed CLI
 
 The embedded arm64 Mach-O string table contains exact subagent-related error literals also present in the peeled `rust-v0.162.0-alpha.17.2` source: `Agent depth limit reached. Solve the task yourself.`, `spawn_agent could not resolve the child model for service tier validation`, and `spawn_agent could not resolve the child model for reasoning effort validation`. The first occurs in the V1 spawn and resume handlers; the latter two are in child configuration validation. This provides another content-level cross-check that the public tag is relevant to the installed binary. A string match does not prove that the whole binary was built from this commit, nor that any matched branch ran in the desktop session. The binary identity remains the SHA-256 and Mach-O UUID above; no runtime action was taken for this check.
