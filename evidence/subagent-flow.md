@@ -2521,3 +2521,23 @@ This narrows the earlier “reload on follow-up” description: `TriggerTurn` re
 At the same pinned commit, mailbox arrival does not simply mean “wait for the next turn.” `InputQueue::deliver_mailbox_communication_to_current_turn` checks that the intended active turn still exists, is not cancelled, and is in `MailboxDeliveryPhase::CurrentTurn`; only then does it append the communication to that turn's pending inputs and publish mailbox activity. `MailboxDeliveryPhase` starts at `CurrentTurn`. The `TurnState` documentation says visible terminal answer output switches it to `NextTurn`, so late child mail stays queued instead of extending an already shown answer. If later explicit same-turn work arrives, the phase can be reopened and pending mail drained into a subsequent model request in that turn. Sources: [`input_queue.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/session/input_queue.rs) and [`state/turn.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/state/turn.rs).
 
 The queue's user-input watcher cancels the sampling request when pending user input exists; mailbox insertion separately publishes `InputQueueActivity::Mailbox`. Therefore queue-only agent mail can become input for a later request without being equivalent to a user interrupt or cancelling the current turn. This distinction is also why a sender should describe QueueOnly as “queued, and may be consumed by the current turn before final output,” not guarantee either immediate handling or next-turn-only delivery. This is source analysis; no upstream tests or managed Desktop runtime were run in this pass.
+
+## Current-main QueueOnly merge into the next model request (2026-10-15)
+
+I followed the accepted communication through the active turn loop at the same pinned upstream commit, `e89b7c442c0433ad5167e72a5a25bb6d0712766a`. `InputQueue::get_pending_input` atomically checks whether the active turn still accepts mailbox delivery, drains that turn's pending inputs, then drains mailbox items and appends them. The turn loop calls this at the beginning of a sampling iteration when pending input may be drained. It passes the resulting inputs to `run_hooks_and_record_inputs`; for `TurnInput::InterAgentCommunication`, the hook runtime does not treat it as user prompt text, and `record_pending_input` calls `Session::record_inter_agent_communication`.
+
+That session method converts the communication with `to_model_input_item()`, adds the tool namespace metadata used by the current multi-agent configuration, records the response item in conversation history, persists `InterAgentCommunicationMetadata { trigger_turn }` plus the response item to the rollout, then emits the response item to the turn stream. After recording, the turn loop builds the sampling input from `clone_history().for_prompt(...)` and calls `run_sampling_request`. Following a sampling step, mailbox pending state contributes to `needs_follow_up`, so the loop can return to the input-drain boundary and issue a later request. The message therefore reaches model context through the shared conversation history path; mailbox activity itself does not splice text into an already-running request.
+
+```text
+mailbox / current-turn pending inputs
+  → get_pending_input drains accepted InterAgentCommunication items
+  → run_hooks_and_record_inputs
+  → record_inter_agent_communication converts and records response item
+  → conversation history + rollout + turn stream
+  → clone_history().for_prompt(...)
+  → next run_sampling_request
+```
+
+Sources: [`input_queue.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/session/input_queue.rs), [`turn.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/session/turn.rs), [`hook_runtime.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/hook_runtime.rs), [`session/mod.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/core/src/session/mod.rs), and [`protocol.rs`](https://github.com/openai/codex/blob/e89b7c442c0433ad5167e72a5a25bb6d0712766a/codex-rs/protocol/src/protocol.rs).
+
+This is a static trace of the current source. It does not establish timing for a particular hosted Desktop session, that every accepted item appears in every model request (history truncation and context policy still apply), or a live model's exact interpretation. No upstream tests or managed Desktop runtime were run in this pass.
