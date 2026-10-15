@@ -2423,4 +2423,18 @@ thread store emits transcript delta
   → history viewport follows rendered turn IDs back to host
 ```
 
-This narrows the remaining UI gap: the bundle shows the state projection consumed by the renderer, but this trace does not identify a particular mounted Subagents panel component, prove which selector it reads for a selected child, or capture a React commit, DOM change, or visible paint. The listener may reject stale updates, subscription failure may mark the provider unavailable, malformed deltas can fail, and the host may produce no delta. This is static wiring for the installed bundle, not a live UI observation.
+This trace establishes the renderer transcript state projection. A separate selected-panel trace now identifies the component mounted for a selected local child and its input props, but does not prove which transcript selector that child component reads, a live branch execution, React commit, DOM change, or visible paint. The listener may reject stale updates, subscription failure may mark the provider unavailable, malformed deltas can fail, and the host may produce no delta. These are static wiring findings for the installed bundle, not a live UI observation.
+
+
+## Selected local subagent row mounts the local conversation thread component
+
+For the installed ChatGPT Desktop 26.1007.71326 bundle (`app.asar` SHA-256 `2f231a64e6dd30111bcd09e03c149cd06c8679b25914842772423251c4608ded`), I followed the selected-child branch in `webview/assets/local-conversation-subagents-panel-tab-b201494eb46e.js` (SHA-256 `845c0ca741ba9fc3abe92f46a9bed78195da59de94b08ae8008472390d63e7fc`). The panel computes its subagent rows, finds the row whose `conversationId` matches the requested selected conversation, and mounts the component imported as `k` from `local-conversation-thread-269c4ee9ddf0.js` (`9b5561cdb97fb19052f3f7ed0b15cd061a4285f694a19d31fb092db7b35afbb8`; the thread component is exported as `t`). The selected branch supplies `conversationId`, `hostId`, and `canInteract: selectedRow?.canInteract === true`, along with close and background-agent callbacks. If there is no selected child, the panel renders its overview; a loading branch renders a skeleton.
+
+```text
+local Subagents panel computes rows
+  → requested conversation ID selects a matching row
+  → LocalConversationThread mounts with child ID, host ID, and canInteract
+  → thread component owns the selected child transcript view
+```
+
+This closes the static selected-row-to-transcript-component wiring gap. It does not prove that this branch executed in a live session, that the row was present, that its `canInteract` value was true, or that React committed, the DOM changed, or pixels were painted. This selected local-conversation route is distinct from the Work Subagents panel and its activity-summary detail path. The existing transcript projection trace describes the downstream local state reducer and selectors; this trace establishes only the component/prop handoff.
