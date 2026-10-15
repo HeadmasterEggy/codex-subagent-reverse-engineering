@@ -133,6 +133,8 @@ The 2026-10-16 upstream path refresh advanced public `main` from `922510f` to `3
 
 - The pinned `7ae8319` spawn-config trace clarifies that Fresh V2 resolves an implicit `default` role (which may load a configured role file), Full-history V2 skips role application unless explicitly named, and Full-history V1 rejects an explicit role before child creation. The local Lab panel now shows these separate branches and was manually exercised after correction. These are public-source rules and prototype interaction evidence, not a live Desktop resolved config. See the [spawn-config evidence](evidence/subagent-flow.md#child-spawn-configuration-precedence-and-implicit-default-role-2026-10-16) and [Lab README](https://github.com/HeadmasterEggy/codex-subagent-lab).
 
+- The latest public `main` check through `97ebf2d` found no direct change to the inspected core child lifecycle or inter-agent routing paths. It did find a generic generated-image attachment-reference change carried through thread history, rollout migration, and task-output summaries; this may affect returned image items generally, but no child-specific behavior was established. The macOS `taskpolicy -b` change belongs to managed app-server daemon startup and is not evidence about child process launch. See the [bounded path recheck](evidence/subagent-flow.md#latest-upstream-path-recheck-through-97ebf2d-2026-10-16).
+
 ## References
 
 - [OpenAI Codex repository](https://github.com/openai/codex)
