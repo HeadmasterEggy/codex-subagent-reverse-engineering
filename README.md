@@ -119,6 +119,8 @@ The script reads the executable, prints its version, SHA-256, Mach-O UUID, and s
 
 - A 2026-10-16 comparison advanced public `main` from `5fff637` to `3ee47c1`; the only changed files concern Guardian transcript compaction-summary attribution and its tests, with no subagent, agent-control, app-server, or TUI paths changed. Earlier source findings remain current within that path scope, not as a hosted Desktop behavior claim. See the [latest-main path recheck](evidence/subagent-flow.md#latest-main-path-recheck-through-3ee47c1-2026-10-16).
 
+- A fresh read-only scan on 2026-10-16 identifies the installed signed Desktop CLI as `0.162.0-alpha.17.2` (SHA-256 `0d5ac7aae20c4eda6242428d5e218c55ba96d8763fda2a271088ff37104b9d28`, arm64 UUID `2CE1483B-FF35-344F-9958-9D48FFE5D5ED`). Its symbol table includes the V2 spawn/wait/list/message/follow-up handlers and agent-control lifecycle methods; embedded strings include V2 capacity/wait feature keys. This confirms code presence in this artifact only, not function execution or build provenance. Reproduce with [`collect-macos-evidence.sh`](scripts/collect-macos-evidence.sh); see the [installed binary identity trace](evidence/subagent-flow.md#current-installed-desktop-cli-binary-identity-and-subagent-symbol-presence-2026-10-16).
+
 ## References
 
 - [OpenAI Codex repository](https://github.com/openai/codex)
