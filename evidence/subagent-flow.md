@@ -1,5 +1,13 @@
 # Subagent flow: local binary and matching public source
 
+## Prototype update: mailbox wait and structural-parent result delivery
+
+On 2026-10-15, I updated the independent Subagent Lab prototype after comparing its first MCP implementation with the versioned Codex V2 contract recorded below. The old prototype accepted a child task ID in `wait_agent` and joined that child’s terminal status. The updated bridge accepts only an optional timeout and waits on the calling task’s own inbox. It does not consume the message; `read_messages` remains the consuming operation.
+
+When a child reaches a terminal state, the coordinator now queues a `task_result` message for its structural parent. The message includes the child ID, terminal status, exit code, signal, any launch error, and up to the last 8,000 characters of captured output. Normal completion, failed launch, and cancellation before the process starts use the same idempotent result-delivery path. The UI exposes pending inbox count and recent message previews, distinguishing child results from ordinary messages. These are prototype design choices derived from the observed protocol; they do not reproduce Codex Desktop internals.
+
+I ran a fresh local CLI/MCP E2E against the updated code on 2026-10-15. A root task called `spawn_agent`, then called `wait_agent` with `timeout_seconds: 90` and no child identifier. The child returned `RESULT_MARKER_7D93`; the parent's wait returned `timed_out: false`, `pending_message_count: 1`, and a `task_result` entry with `status=completed`, `exit_code=0`, and that marker. The root then called `read_messages`, received the same result, and exited successfully. The captured parent CLI usage was 125,676 input tokens (109,696 cached) and 215 output tokens; end-to-end wall time from the observed message timestamps was about 8 seconds. CPU time and peak process-family memory were not measured. This validates the prototype bridge and process orchestration, not Codex Desktop's runtime.
+
 ## Local Subagent Lab MCP E2E
 
 On 2026-10-15, a browser-driven run exercised the independent local Subagent Lab prototype at `http://127.0.0.1:4318/`. A root task was started from the UI. Its local Codex CLI process used the session-scoped `subagent_lab` MCP server to spawn a child, send the child `Mailbox E2E marker: cobalt-otter-731`, and wait for it. The child called `read_messages`, received that exact marker, and returned a result. The UI showed the parent-child task tree, the `agent spawned` event, task output, and terminal statuses. The child completed with exit code 0; `wait_agent` returned `completed` and `timed_out:false`; the root then completed with exit code 0.
