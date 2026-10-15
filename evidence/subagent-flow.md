@@ -1,5 +1,11 @@
 # Subagent flow: local binary and matching public source
 
+## Local Subagent Lab MCP E2E
+
+On 2026-10-15, a browser-driven run exercised the independent local Subagent Lab prototype at `http://127.0.0.1:4318/`. A root task was started from the UI. Its local Codex CLI process used the session-scoped `subagent_lab` MCP server to spawn a child, send the child `Mailbox E2E marker: cobalt-otter-731`, and wait for it. The child called `read_messages`, received that exact marker, and returned a result. The UI showed the parent-child task tree, the `agent spawned` event, task output, and terminal statuses. The child completed with exit code 0; `wait_agent` returned `completed` and `timed_out:false`; the root then completed with exit code 0.
+
+This is direct runtime evidence for the prototype's MCP bridge, task creation, parent-child relation, pull-based inbox read, completion reporting, parent wait, and browser projection. It does not show that Codex Desktop internally uses this MCP server, process model, or inbox design. Each prototype task runs as its own local `codex exec --ephemeral` process. In this prototype, messages are queued until the recipient calls `read_messages`; send does not interrupt an active model turn or inject new prompt context. The prototype keeps task state in memory, binds the HTTP UI to loopback, caps the session at 100 tasks and four concurrent CLI processes, caps nesting at eight levels, and caps each inbox at 100 pending messages. No Desktop-internal runtime behavior was exercised by this run.
+
 Checked on 2026-10-13. This report distinguishes direct local observations from source-derived behavior and inference.
 
 ## Target identity
