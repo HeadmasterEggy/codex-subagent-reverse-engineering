@@ -1,0 +1,43 @@
+{
+  "observed_at": "2026-10-17T09:18:00+11:00",
+  "cli": {
+    "version": "codex-cli 0.162.1",
+    "invocation": "codex exec --ignore-user-config --enable multi_agent_v2 --ephemeral --json --sandbox read-only --cd <lab> --skip-git-repo-check",
+    "feature_listing_separate_process": {
+      "command": "codex features list --enable multi_agent_v2",
+      "multi_agent": "stable/enabled",
+      "multi_agent_v2": "stable/enabled",
+      "multi_agent_v2_dynamic_tools": "under-development/disabled",
+      "scope": "Separate feature-list command; not the resolved version or tool set of the probe turn."
+    }
+  },
+  "parent_events": [
+    "thread.started",
+    "turn.started",
+    "agent_message stating an intention to spawn one child",
+    "collab_tool_call: wait started and completed",
+    "agent_message asserting the requested marker",
+    "turn.completed"
+  ],
+  "wait_call": {
+    "status": "completed",
+    "receiver_thread_ids": [],
+    "agents_states": {}
+  },
+  "child_evidence": {
+    "spawn_agent_event": false,
+    "thread_source_subagent_record": false,
+    "child_rollout": false,
+    "marker_in_child_result": false
+  },
+  "classification": "invalid-as-subagent-execution-evidence",
+  "limits": [
+    "The parent final text repeats the requested marker, but no child creation or child result is recorded.",
+    "The feature-list command is a separate process and does not prove this turn resolved to V2.",
+    "Ephemeral mode leaves no parent or child rollout to inspect for turn_context.multi_agent_version.",
+    "This attempt does not establish why the model called wait without first creating a child."
+  ],
+  "local_jsonl_sha256": "ee94da3808b9a6edc99c2110badb52fd60e11d00d80b0728e45ab62ef30a33a6",
+  "raw_jsonl_location": "local temporary JSONL capture",
+  "raw_capture_policy": "Raw JSONL remains local; this record contains only event names, empty recipient state, and evidence boundaries."
+}

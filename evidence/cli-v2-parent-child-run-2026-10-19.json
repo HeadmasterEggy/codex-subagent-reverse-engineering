@@ -1,0 +1,131 @@
+{
+  "observed_at": "2026-10-19T11:10:22+11:00",
+  "kind": "live_installed_cli_v2_run",
+  "cli": {
+    "version": "codex-cli 0.163.0-alpha.10.2",
+    "desktop_build": "26.1013.40934 (20770)",
+    "invocation": "codex exec --enable multi_agent_v2 --json --skip-git-repo-check -C <temporary-directory>",
+    "feature_state_before_run": {
+      "multi_agent": "stable/enabled",
+      "multi_agent_v2": "stable/disabled",
+      "scope": "features list snapshot; invocation overrides multi_agent_v2 for this process only"
+    }
+  },
+  "parent": {
+    "thread_id": "01a1517e-bc11-7ac3-8b7b-df9083a832a8",
+    "turn_id": "01a1517e-bdf3-70c3-833b-aaf05e3da4e1",
+    "multi_agent_version": "v2",
+    "model": "gpt-6-luna",
+    "persisted_rollout": "rollout-2026-10-19T11-10-22-01a1517e-bc11-7ac3-8b7b-df9083a832a8.jsonl",
+    "response_items": [
+      {
+        "type": "function_call",
+        "name": "spawn_agent",
+        "call_id": "call_05d7338c390a4442a45713937e5c1013",
+        "arguments_summary": "task_name=child_ok; fork_turns=none; child asked to return CHILD_OK",
+        "message_payload": "redacted opaque encrypted payload"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "call_05d7338c390a4442a45713937e5c1013",
+        "output": "{\"task_name\":\"/root/child_ok\"}"
+      },
+      {
+        "type": "function_call",
+        "name": "wait_agent",
+        "call_id": "call_297b989857264d2b998eba80ebe69705",
+        "arguments_summary": "timeout_ms=3600000"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "call_297b989857264d2b998eba80ebe69705",
+        "output": "{\"message\":\"Wait completed.\",\"timed_out\":false}"
+      }
+    ],
+    "codex_exec_json_observed_items": [
+      "thread.started",
+      "turn.started",
+      "agent_message announcing child creation",
+      "collab_tool_call wait started/completed with empty receiver_thread_ids and agents_states",
+      "agent_message reporting CHILD_OK",
+      "turn.completed"
+    ],
+    "json_stream_spawn_agent_item_observed": false,
+    "turn_usage": {
+      "input_tokens": 72735,
+      "cached_input_tokens": 48640,
+      "output_tokens": 127,
+      "reasoning_output_tokens": 25,
+      "scope": "parent turn only as reported by codex exec"
+    }
+  },
+  "child": {
+    "thread_id": "01a1517e-dfd5-74f0-bf7e-86a53e69ba74",
+    "parent_thread_id": "01a1517e-bc11-7ac3-8b7b-df9083a832a8",
+    "source": {
+      "subagent": {
+        "thread_spawn": {
+          "parent_thread_id": "01a1517e-bc11-7ac3-8b7b-df9083a832a8",
+          "depth": 1,
+          "agent_path": "/root/child_ok",
+          "agent_nickname": "Kant"
+        }
+      }
+    },
+    "multi_agent_version": "v2",
+    "final_result": "CHILD_OK"
+  },
+  "classification": "successful_persisted_v2_subagent_run_with_cli_json_surface_mismatch",
+  "interpretation": {
+    "establishes": [
+      "This invocation resolved the parent and child turn contexts to V2.",
+      "The persisted parent rollout records a completed spawn_agent function call and its matching output.",
+      "The child rollout identifies itself as a subagent and explicitly links parent_thread_id to the parent thread.",
+      "The child completed with CHILD_OK, and the parent recorded a completed wait_agent call and reported that result.",
+      "The codex exec --json stream did not expose a spawn item and represented wait with empty recipient/state fields.",
+      "The exact release source explains the missing JSON item: V2 spawn emits SubAgentActivity, which app-server forwards as a canonical item, while exec JSON conversion returns None for unsupported ThreadItem variants."
+    ],
+    "does_not_establish": [
+      "Which internal controller vtable served this run.",
+      "Whether the Desktop renderer displayed each event or the native subagent panel.",
+      "Default V2 selection: the command explicitly enabled multi_agent_v2 for this invocation."
+    ]
+  },
+  "source_trace": {
+    "commit": "4ebc485ca321243727539187169425fcf972f2c4",
+    "release": "0.163.0-alpha.10.2",
+    "matched_installed_cli_version": true,
+    "path": [
+      {
+        "stage": "core_v2_spawn",
+        "file": "codex-rs/core/src/tools/handlers/multi_agents_v2/spawn.rs",
+        "lines": "162-174",
+        "behavior": "After child creation succeeds, emits a Started SubAgentActivity with child thread ID and task path."
+      },
+      {
+        "stage": "canonical_core_items",
+        "file": "codex-rs/core/src/tools/handlers/multi_agents_v2.rs",
+        "lines": "44-52",
+        "behavior": "SubAgentActivity is emitted through ItemStarted and ItemCompleted."
+      },
+      {
+        "stage": "app_server_notifications",
+        "file": "codex-rs/app-server/src/bespoke_event_handling.rs",
+        "lines": "1077-1135",
+        "behavior": "Canonical ItemStarted and ItemCompleted are forwarded to app-server clients."
+      },
+      {
+        "stage": "exec_json_projection",
+        "file": "codex-rs/exec/src/event_processor_with_jsonl_output.rs",
+        "lines": "70-323,343-368",
+        "behavior": "The mapper supports selected ThreadItem variants including CollabAgentToolCall; unsupported variants fall through to None, so SubAgentActivity is not serialized as an exec JSON item."
+      }
+    ],
+    "conclusion": "The source-matched CLI JSON omission is explained at the exec projection boundary; this does not establish Desktop renderer or panel behavior."
+  },
+  "raw_rollouts": {
+    "parent": "~/.codex/sessions/2026/10/19/rollout-2026-10-19T11-10-22-01a1517e-bc11-7ac3-8b7b-df9083a832a8.jsonl",
+    "child": "~/.codex/sessions/2026/10/19/rollout-2026-10-19T11-10-31-01a1517e-dfd5-74f0-bf7e-86a53e69ba74.jsonl",
+    "included_in_repository": false
+  }
+}

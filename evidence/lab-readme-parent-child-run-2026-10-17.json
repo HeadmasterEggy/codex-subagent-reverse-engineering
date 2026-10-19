@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-17",
+  "evidence_type": "manual_live_prototype_run",
+  "prototype": "Codex Subagent Lab",
+  "workspace": "Lab workspace",
+  "result": {
+    "root": "completed",
+    "children_requested": 1,
+    "children_created": 1,
+    "child": "completed; exit_code=0",
+    "parent_used": ["list_agents", "wait_agent", "read_messages"],
+    "child_result_delivered": true,
+    "active_processes_after_completion": 0,
+    "workspace_files_changed": false
+  },
+  "task_content": {
+    "target": "README.md",
+    "first_level_heading": "# Codex Subagent Lab",
+    "opening_sentence": "The Inspector now includes a selectable app-server projection view for `spawnAgent`, `sendInput`, and `wait`."
+  },
+  "evidence_boundary": [
+    "Observed in the Lab UI: parent/child tree, completed states, returned child result, parent final response, and zero active sessions.",
+    "The child read the requested existing README content; no workspace files were changed.",
+    "Does not capture Codex Desktop native subagent controller, host, or panel runtime.",
+    "Supplying the child result to the parent does not establish model interpretation."
+  ],
+  "runtime": {
+    "root_elapsed_seconds_rounded": 29,
+    "child_elapsed_seconds_rounded": 11,
+    "usage_retained": false
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "kind": "manual-ui-check",
+  "checked_at": "2026-10-19",
+  "surface": "Codex Subagent Lab",
+  "view": "Complete vs close",
+  "scenarios": [
+    {
+      "name": "Turn completes",
+      "observed": "The panel shows TurnComplete, conditional Completed activity, queued result with trigger_turn=false, and child still resident."
+    },
+    {
+      "name": "Parent calls close_agent",
+      "observed": "The panel shows persisted edge Closed, live child and descendant shutdown, and owned-state cleanup."
+    },
+    {
+      "name": "InternalAgentDied",
+      "observed": "The panel shows in-memory ownership release and marks persisted edge status and parent result delivery as unknown."
+    }
+  ],
+  "verification_boundary": "Manual interaction and rendered accessibility state only. It is not a Codex Desktop runtime capture or a source test."
+}

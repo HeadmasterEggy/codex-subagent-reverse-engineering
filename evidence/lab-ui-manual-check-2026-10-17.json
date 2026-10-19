@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-17",
+  "surface": "local Codex Subagent Lab in the in-app browser",
+  "url": "http://127.0.0.1:49105/",
+  "observations": {
+    "current_asset_loaded": true,
+    "evidence_maps_expanded": true,
+    "desktop_build_20586_panel_visible": true,
+    "status_selection": "Failed",
+    "status_detail_updated": true,
+    "active_and_done_groups_explained": true
+  },
+  "limits": [
+    "This verifies the local Lab's explanatory controls and rendered state only.",
+    "The panel diagram is static bundle analysis; it is not a live Codex Desktop session or screenshot.",
+    "No Desktop lifecycle action or app-server request was issued by this interaction."
+  ]
+}
