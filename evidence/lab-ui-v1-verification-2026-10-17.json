@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-17",
+  "preview": {
+    "url": "http://127.0.0.1:4334/",
+    "loadedCurrentAsset": true,
+    "cliV1CardRendered": true,
+    "checkpointCount": 4,
+    "interaction": {
+      "selectedCheckpoint": 4,
+      "readout": "Parent returns the result",
+      "evidence": "The parent final response includes the unique marker from the controlled child task and the parent turn completes."
+    }
+  },
+  "localRuntime": {
+    "rootStatus": "completed",
+    "childCount": 1,
+    "childStatus": "completed",
+    "childScope": "Read only README.md; no file modifications or target execution.",
+    "parentCoordination": ["list_agents", "wait_agent", "read_messages"],
+    "resultReturnedToParent": true
+  },
+  "limits": [
+    "The interactive card presents an independently captured codex exec CLI run; it is not a Desktop UI capture.",
+    "The Lab runtime result validates this local prototype, not Codex Desktop's native controller or subagent panel.",
+    "The raw local parent and child task records are not included in this summary."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-17",
+  "evidence_type": "manual_live_prototype_run",
+  "prototype": "Codex Subagent Lab",
+  "workspace": "Lab workspace",
+  "result": {
+    "root": "completed",
+    "children_requested": 1,
+    "children_created": 1,
+    "child": "completed; exit_code=0",
+    "parent_used": ["list_agents", "wait_agent", "read_messages"],
+    "child_result_delivered": true,
+    "active_processes_after_completion": 0,
+    "workspace_files_changed": false
+  },
+  "task_content": {
+    "requested_target": "package.json",
+    "observation": "The file is absent from the fixed workspace root.",
+    "consequence": "The run confirms orchestration and delivery but yields no package metadata."
+  },
+  "evidence_boundary": [
+    "Observed in the Lab UI: parent/child tree, completed states, returned child result, parent final response, and zero active sessions.",
+    "Does not capture Codex Desktop native subagent controller, host, or panel runtime.",
+    "Supplying the child result to the parent does not establish model interpretation."
+  ],
+  "runtime_usage": {
+    "scope": "root task event only",
+    "input_tokens": 108957,
+    "cached_input_tokens": 87424,
+    "output_tokens": 277,
+    "child_only_cost_measured": false
+  }
+}

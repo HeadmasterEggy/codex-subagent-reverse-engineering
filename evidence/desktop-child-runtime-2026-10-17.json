@@ -1,0 +1,36 @@
+{
+  "observed_at": "2026-10-17",
+  "desktop": {
+    "version": "26.1013.31256",
+    "build": "20586",
+    "gui_process_observed": true,
+    "associated_app_server_process_observed": true
+  },
+  "parent_rollout": {
+    "multi_agent_version": "v1",
+    "completed_collab_agent_tool_calls": 2,
+    "receiver_count": 2,
+    "turn_linkage": "both calls recorded in one parent turn"
+  },
+  "child_rollouts": {
+    "count": 2,
+    "originator": "Codex Desktop",
+    "thread_source": "subagent",
+    "depth": 1,
+    "multi_agent_version": "v1",
+    "parent_linkage": "both child metadata records match the parent rollout"
+  },
+  "desktop_log": {
+    "same_child_ids_observed": true,
+    "methods": ["thread/read", "turn/started", "thread/name/set"],
+    "time_relation": "requests appear at child rollout creation time",
+    "log_copied_to_repository": false
+  },
+  "conclusion": "The Desktop-side app-server handled thread reads and lifecycle requests for two children linked to completed parent spawn records.",
+  "limits": [
+    "No native panel component event or renderer paint acknowledgement was observed.",
+    "The evidence does not establish that child cards visibly rendered.",
+    "Raw rollout and Desktop log content remain local and are not included.",
+    "This two-child observation does not establish a global Desktop default or behavior for other sessions."
+  ]
+}

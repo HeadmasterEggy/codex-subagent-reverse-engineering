@@ -1,0 +1,43 @@
+{
+  "observed_at": "2026-10-16T18:08:38.945Z",
+  "cli": {
+    "version": "0.163.0-alpha.10.2",
+    "binary_sha256": "1afb28c01d7d49e892bd75f11076b10f1451e34e0ee308a95e5ab7f69f9c84fe",
+    "invocation": "codex exec --enable multi_agent --sandbox read-only",
+    "resolved_multi_agent_version": "v1"
+  },
+  "parent": {
+    "thread_id": "01a145e6-d7ff-7793-9b37-1f1b50fc57ed",
+    "turn_id": "01a145e6-d979-73b0-8db2-0b80755123a1",
+    "source": "exec",
+    "spawn_agent_event": {
+      "rollout_ordinal": 17,
+      "status": "completed",
+      "child_thread_id": "01a145e7-03fd-7cb2-b0f6-d6acbe0d8caa"
+    },
+    "wait_event": {
+      "rollout_ordinal": 23,
+      "status": "completed",
+      "child_thread_id": "01a145e7-03fd-7cb2-b0f6-d6acbe0d8caa"
+    },
+    "final_status": "completed",
+    "child_result_marker": "CODEX-SUBAGENT-PROBE-1017"
+  },
+  "child": {
+    "thread_id": "01a145e7-03fd-7cb2-b0f6-d6acbe0d8caa",
+    "parent_thread_id": "01a145e6-d7ff-7793-9b37-1f1b50fc57ed",
+    "source": "thread_spawn",
+    "depth": 1,
+    "multi_agent_version": "v1",
+    "status": "completed"
+  },
+  "local_rollouts": {
+    "parent_sha256": "9670c6982ab79138b02e8f8419fd69ec84707d401bcad94c30befacb9daf6db9",
+    "child_sha256": "f827bda838416bab3d68e58614735b2baad2d17c2e4d53f0bd91a223ea0c2240"
+  },
+  "limits": [
+    "This is a standalone CLI exec run, not a Desktop conversation UI task.",
+    "The record does not identify the Desktop host's selected AgentControl implementation or runtime vtable.",
+    "Raw rollout files remain local and are not included because they contain full task context."
+  ]
+}
